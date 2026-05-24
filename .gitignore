@@ -18,6 +18,8 @@ env/
 instance/
 uploads/
 *.log
+*.bak
+*.bak.*
 
 # Database/runtime volumes and backups
 postgres_data/
