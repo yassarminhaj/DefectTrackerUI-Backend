@@ -1,0 +1,281 @@
+{
+  "module": "Inline Assets",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "INLINE-API-001",
+      "title": "Upload inline asset succeeds",
+      "description": "Verify inline Steps image metadata can be created.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{createdDefectId}}/inline-assets",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "filename": "step-{{global.runId}}.png",
+          "contentType": "image/png",
+          "fileSizeBytes": 12345,
+          "widthPx": 800,
+          "heightPx": 600
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "Response contentUrl exists.",
+          "Response widthPx is 800."
+        ]
+      },
+      "dbExpectation": [
+        "defect_inline_assets record is created.",
+        "inline_asset_added history event is created."
+      ]
+    },
+    {
+      "caseId": "INLINE-API-002",
+      "title": "Upload inline asset currently accepts non-image content type",
+      "description": "Document current live behavior where inline asset upload stores supplied contentType without enforcing image-only validation.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{createdDefectId}}/inline-assets",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "filename": "bad.txt",
+          "contentType": "text/plain",
+          "fileSizeBytes": 100,
+          "widthPx": 100,
+          "heightPx": 100
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "Response contentType follows request.",
+          "This is a validation gap to harden later."
+        ]
+      },
+      "dbExpectation": [
+        "defect_inline_assets record is created per current behavior."
+      ]
+    },
+    {
+      "caseId": "INLINE-API-003",
+      "title": "Upload inline asset rejects invalid defect",
+      "description": "Verify invalid defect ID is handled.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{missingDefectId}}/inline-assets",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "filename": "step.png",
+          "contentType": "image/png",
+          "fileSizeBytes": 100,
+          "widthPx": 100,
+          "heightPx": 100
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates defect not found."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "INLINE-API-004",
+      "title": "Update inline asset dimensions succeeds",
+      "description": "Verify asset display dimensions can be updated.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "An inline asset exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/defects/{{createdDefectId}}/inline-assets/{{createdInlineAssetId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "widthPx": 1024,
+          "heightPx": 768
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response widthPx is 1024.",
+          "Response heightPx is 768."
+        ]
+      },
+      "dbExpectation": [
+        "defect_inline_assets dimensions are updated."
+      ]
+    },
+    {
+      "caseId": "INLINE-API-005",
+      "title": "Update inline asset currently accepts zero width",
+      "description": "Document current live behavior where inline asset dimensions are not yet range-validated.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "An inline asset exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/defects/{{createdDefectId}}/inline-assets/{{createdInlineAssetId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "widthPx": 0
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response widthPx follows request or DB behavior.",
+          "This is a validation gap to harden later."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "INLINE-API-006",
+      "title": "Delete inline asset succeeds",
+      "description": "Verify inline asset delete is soft delete.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "An inline asset exists."
+      ],
+      "requestMessage": {
+        "method": "DELETE",
+        "path": "/api/v1/defects/{{createdDefectId}}/inline-assets/{{createdInlineAssetId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 204,
+        "checks": [
+          "Empty response body is returned."
+        ]
+      },
+      "dbExpectation": [
+        "defect_inline_assets is_deleted is true."
+      ]
+    },
+    {
+      "caseId": "INLINE-API-007",
+      "title": "Delete inline asset not found",
+      "description": "Verify missing inline asset returns not found.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "DELETE",
+        "path": "/api/v1/defects/{{createdDefectId}}/inline-assets/{{missingInlineAssetId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates inline asset not found."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "INLINE-API-008",
+      "title": "Get inline asset content succeeds",
+      "description": "Verify content placeholder can be read.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "An inline asset exists."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/inline-assets/{{createdInlineAssetId}}/content",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response returns placeholder content or metadata."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "INLINE-API-009",
+      "title": "Inline asset upload currently accepts missing bearer token",
+      "description": "Document current live proof-layer behavior where inline asset upload uses default seeded actor if token is missing.",
+      "severity": "Critical",
+      "precondition": [
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{createdDefectId}}/inline-assets",
+        "headers": {},
+        "query": {},
+        "body": {
+          "filename": "step.png",
+          "contentType": "image/png",
+          "fileSizeBytes": 100,
+          "widthPx": 100,
+          "heightPx": 100
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}

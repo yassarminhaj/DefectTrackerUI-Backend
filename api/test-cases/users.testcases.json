@@ -1,0 +1,370 @@
+{
+  "module": "Users",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "USERS-API-001",
+      "title": "List users succeeds",
+      "description": "Verify users can be listed with pagination.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/users",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "page": 1,
+          "pageSize": 10
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array.",
+          "Response contains pagination."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "USERS-API-002",
+      "title": "List users filters active users",
+      "description": "Verify isActive filter limits users by active flag.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/users",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "isActive": "true"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Every returned user has isActive true."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "USERS-API-003",
+      "title": "Search users succeeds",
+      "description": "Verify search filters users by name, email, or username.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/users",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "search": "aisha"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Returned users match search criteria when data exists."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "USERS-API-004",
+      "title": "Create user succeeds",
+      "description": "Verify valid user creation including password confirmation.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/users",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "name": "API User {{global.runId}}",
+          "email": "api.user.{{global.runId}}@example.com",
+          "username": "api.user.{{global.runId}}",
+          "password": "Welcome123",
+          "confirmPassword": "Welcome123",
+          "isActive": true,
+          "defaultDataContext": "Test"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "Response username matches request.",
+          "Response defaultDataContext is Test."
+        ]
+      },
+      "dbExpectation": [
+        "app_users record is created."
+      ]
+    },
+    {
+      "caseId": "USERS-API-005",
+      "title": "Create user rejects duplicate username",
+      "description": "Verify duplicate username is rejected.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A user exists with username aisha.khan."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/users",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "name": "Duplicate User",
+          "email": "dup.{{global.runId}}@example.com",
+          "username": "aisha.khan",
+          "password": "Welcome123",
+          "confirmPassword": "Welcome123",
+          "isActive": true
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates username already exists."
+        ]
+      },
+      "dbExpectation": [
+        "No user is created."
+      ]
+    },
+    {
+      "caseId": "USERS-API-006",
+      "title": "Create user rejects password mismatch",
+      "description": "Verify user creation rejects mismatched password confirmation.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/users",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "name": "Bad Password User",
+          "email": "bad.pass.{{global.runId}}@example.com",
+          "username": "bad.pass.{{global.runId}}",
+          "password": "Welcome123",
+          "confirmPassword": "Different123",
+          "isActive": true
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates passwords do not match."
+        ]
+      },
+      "dbExpectation": [
+        "No user is created."
+      ]
+    },
+    {
+      "caseId": "USERS-API-007",
+      "title": "Update user succeeds",
+      "description": "Verify an existing user can be updated.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable user exists for update."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/users/{{createdUserId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "name": "Updated API User {{global.runId}}",
+          "isActive": false
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response name matches request.",
+          "Response isActive is false."
+        ]
+      },
+      "dbExpectation": [
+        "app_users record is updated.",
+        "updated_by_user_id is current user."
+      ]
+    },
+    {
+      "caseId": "USERS-API-008",
+      "title": "Update user rejects duplicate email",
+      "description": "Verify user update rejects email already used by another user.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable user exists.",
+        "Another user exists with email from test data."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/users/{{createdUserId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "email": "{{data.users.aishaKhan.email}}"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates email already exists."
+        ]
+      },
+      "dbExpectation": [
+        "User email remains unchanged."
+      ]
+    },
+    {
+      "caseId": "USERS-API-009",
+      "title": "Update user not found",
+      "description": "Verify updating a missing user returns not found.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/users/{{missingUserId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "name": "Missing"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates user not found."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "USERS-API-010",
+      "title": "Reset user password succeeds",
+      "description": "Verify password reset endpoint accepts new and confirm password.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable active user exists."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/users/{{createdUserId}}/password",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "newPassword": "Welcome1234",
+          "confirmPassword": "Welcome1234"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 204,
+        "checks": [
+          "Empty response body is returned."
+        ]
+      },
+      "dbExpectation": [
+        "user_password_events reset event is created."
+      ]
+    },
+    {
+      "caseId": "USERS-API-011",
+      "title": "Reset user password rejects mismatch",
+      "description": "Verify reset password rejects different values.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable user exists."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/users/{{createdUserId}}/password",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "newPassword": "Welcome1234",
+          "confirmPassword": "Different123"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates passwords do not match."
+        ]
+      },
+      "dbExpectation": [
+        "Password is not changed."
+      ]
+    },
+    {
+      "caseId": "USERS-API-012",
+      "title": "Users list currently accepts missing bearer token",
+      "description": "Document current live proof-layer behavior where missing bearer token still allows user listing.",
+      "severity": "Critical",
+      "precondition": [],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/users",
+        "headers": {},
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}

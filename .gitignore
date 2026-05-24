@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Flask/runtime
+.env
+.env.*
+!.env.example
+instance/
+uploads/
+*.log
+
+# Database/runtime volumes and backups
+postgres_data/
+database/backups/database/*
+database/backups/files/*
+!database/backups/database/.gitkeep
+!database/backups/files/.gitkeep
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Packaging/build output
+build/
+dist/
+*.egg-info/

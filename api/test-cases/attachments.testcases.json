@@ -1,0 +1,290 @@
+{
+  "module": "Attachments",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "ATTACH-API-001",
+      "title": "List attachments succeeds",
+      "description": "Verify attachments can be listed for a defect.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/attachments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "ATTACH-API-002",
+      "title": "Upload attachment metadata succeeds",
+      "description": "Verify JSON metadata stub creates attachment record in current live API.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{createdDefectId}}/attachments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "filename": "invoice-error-{{global.runId}}.png",
+          "contentType": "image/png",
+          "fileSizeBytes": 234567
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "Response originalFilename matches request.",
+          "Response contentUrl exists."
+        ]
+      },
+      "dbExpectation": [
+        "defect_attachments record is created.",
+        "attachment_uploaded history event is created."
+      ]
+    },
+    {
+      "caseId": "ATTACH-API-003",
+      "title": "Upload attachment supports CSV extension",
+      "description": "Verify CSV is accepted as supported attachment extension.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{createdDefectId}}/attachments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "filename": "defects-{{global.runId}}.csv",
+          "contentType": "text/csv",
+          "fileSizeBytes": 100
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response fileExtension is csv."
+        ]
+      },
+      "dbExpectation": [
+        "defect_attachments record is created."
+      ]
+    },
+    {
+      "caseId": "ATTACH-API-004",
+      "title": "Upload attachment rejects invalid defect",
+      "description": "Verify foreign-key or not-found handling for invalid defect.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{missingDefectId}}/attachments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "filename": "invoice-error-{{global.runId}}.png",
+          "contentType": "image/png",
+          "fileSizeBytes": 234567
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates data integrity or not found."
+        ]
+      },
+      "dbExpectation": [
+        "No attachment is created."
+      ]
+    },
+    {
+      "caseId": "ATTACH-API-005",
+      "title": "Delete attachment succeeds",
+      "description": "Verify attachment delete is soft delete.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A defect attachment exists."
+      ],
+      "requestMessage": {
+        "method": "DELETE",
+        "path": "/api/v1/defects/{{createdDefectId}}/attachments/{{createdAttachmentId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 204,
+        "checks": [
+          "Empty response body is returned."
+        ]
+      },
+      "dbExpectation": [
+        "defect_attachments is_deleted is true.",
+        "attachment_deleted history event is created."
+      ]
+    },
+    {
+      "caseId": "ATTACH-API-006",
+      "title": "Delete attachment not found",
+      "description": "Verify missing attachment returns not found.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "DELETE",
+        "path": "/api/v1/defects/{{createdDefectId}}/attachments/{{missingAttachmentId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates attachment not found."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "ATTACH-API-007",
+      "title": "Get attachment content placeholder succeeds",
+      "description": "Verify current API returns content placeholder metadata.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "An attachment exists."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/attachments/{{createdAttachmentId}}/content",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response returns placeholder content or file metadata."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "ATTACH-API-008",
+      "title": "Get attachment content not found",
+      "description": "Verify missing attachment content returns not found.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/attachments/{{missingAttachmentId}}/content",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates attachment not found."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "ATTACH-API-009",
+      "title": "Upload attachment handles empty body",
+      "description": "Verify attachment upload does not crash on empty JSON and follows current default behavior.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{createdDefectId}}/attachments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "API returns JSON response.",
+          "Default filename behavior follows current implementation."
+        ]
+      },
+      "dbExpectation": [
+        "Attachment record may be created with default metadata per current behavior."
+      ]
+    },
+    {
+      "caseId": "ATTACH-API-010",
+      "title": "Attachment list currently accepts missing bearer token",
+      "description": "Document current live proof-layer behavior where attachments can be listed without bearer token.",
+      "severity": "Critical",
+      "precondition": [
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/attachments",
+        "headers": {},
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}

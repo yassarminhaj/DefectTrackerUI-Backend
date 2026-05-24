@@ -1,0 +1,293 @@
+{
+  "module": "Comments",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "COMMENT-API-001",
+      "title": "List comments succeeds",
+      "description": "Verify defect comments can be listed.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/comments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "COMMENT-API-002",
+      "title": "Add comment succeeds",
+      "description": "Verify a comment can be added to a defect.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{createdDefectId}}/comments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "commentText": "API comment {{global.runId}}"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "Response commentText matches request.",
+          "Response createdBy matches logged-in user."
+        ]
+      },
+      "dbExpectation": [
+        "defect_comments record is created.",
+        "comment_added history event is created."
+      ]
+    },
+    {
+      "caseId": "COMMENT-API-003",
+      "title": "Add comment currently accepts empty text",
+      "description": "Document current live behavior where empty comment text is accepted because only database nullability is enforced.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{createdDefectId}}/comments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "commentText": ""
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "Response commentText is empty string.",
+          "This is a validation gap to harden later."
+        ]
+      },
+      "dbExpectation": [
+        "defect_comments record is created per current behavior."
+      ]
+    },
+    {
+      "caseId": "COMMENT-API-004",
+      "title": "Add comment invalid defect",
+      "description": "Verify adding comment to missing defect is handled.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects/{{missingDefectId}}/comments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "commentText": "Missing defect comment"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates data integrity or not found."
+        ]
+      },
+      "dbExpectation": [
+        "No comment is created."
+      ]
+    },
+    {
+      "caseId": "COMMENT-API-005",
+      "title": "Update comment succeeds",
+      "description": "Verify existing comment can be updated.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A comment exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/defects/{{createdDefectId}}/comments/{{createdCommentId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "commentText": "Updated API comment {{global.runId}}"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response commentText matches request."
+        ]
+      },
+      "dbExpectation": [
+        "defect_comments record is updated.",
+        "comment_updated history event is created."
+      ]
+    },
+    {
+      "caseId": "COMMENT-API-006",
+      "title": "Update comment currently accepts empty text",
+      "description": "Document current live behavior where comment update accepts an empty string.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A comment exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/defects/{{createdDefectId}}/comments/{{createdCommentId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "commentText": ""
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response commentText is empty string.",
+          "This is a validation gap to harden later."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "COMMENT-API-007",
+      "title": "Update comment not found",
+      "description": "Verify updating missing comment returns not found.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/defects/{{createdDefectId}}/comments/{{missingCommentId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "commentText": "Missing"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates comment not found."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "COMMENT-API-008",
+      "title": "Delete comment succeeds",
+      "description": "Verify comment delete is soft delete.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A comment exists."
+      ],
+      "requestMessage": {
+        "method": "DELETE",
+        "path": "/api/v1/defects/{{createdDefectId}}/comments/{{createdCommentId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 204,
+        "checks": [
+          "Empty response body is returned."
+        ]
+      },
+      "dbExpectation": [
+        "defect_comments is_deleted is true.",
+        "comment_deleted history event is created."
+      ]
+    },
+    {
+      "caseId": "COMMENT-API-009",
+      "title": "Delete comment not found",
+      "description": "Verify deleting missing comment returns not found.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "DELETE",
+        "path": "/api/v1/defects/{{createdDefectId}}/comments/{{missingCommentId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates comment not found."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "COMMENT-API-010",
+      "title": "Comments list currently accepts missing bearer token",
+      "description": "Document current live proof-layer behavior where comments can be listed without bearer token.",
+      "severity": "Critical",
+      "precondition": [
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/comments",
+        "headers": {},
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}

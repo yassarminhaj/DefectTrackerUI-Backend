@@ -1,0 +1,486 @@
+{
+  "module": "Defects",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "DEFECT-API-001",
+      "title": "List defects succeeds",
+      "description": "Verify defect list returns paginated defects.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "page": 1,
+          "pageSize": 10
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array.",
+          "Response contains pagination."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DEFECT-API-002",
+      "title": "List defects respects Test context",
+      "description": "Verify X-Data-Context Test returns Test scoped defects.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}",
+          "X-Data-Context": "Test"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Returned defects belong to Test environments."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DEFECT-API-003",
+      "title": "List defects respects Prod context",
+      "description": "Verify X-Data-Context Prod returns production defects.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}",
+          "X-Data-Context": "Prod"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Returned defects belong to Prod environments."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DEFECT-API-004",
+      "title": "List defects filters by project",
+      "description": "Verify projectId filter returns only selected project defects.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "projectId": "{{data.projects.billingCore.id}}"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Every returned defect belongs to Billing Core."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DEFECT-API-005",
+      "title": "Create defect succeeds",
+      "description": "Verify valid defect creation.",
+      "severity": "Critical",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "forceCreate": "true"
+        },
+        "body": {
+          "title": "API defect {{global.runId}}",
+          "description": "Created by API test.",
+          "projectId": "{{data.projects.billingCore.id}}",
+          "moduleComponent": "Invoice Review",
+          "environmentId": "{{data.environments.uat.id}}",
+          "severityId": "{{data.severities.high.id}}",
+          "priorityId": "{{data.priorities.p1.id}}",
+          "assignedToUserId": "{{data.users.aishaKhan.id}}",
+          "stepsHtml": "<p>Open invoice review.</p>",
+          "expectedResult": "Invoice total remains stable.",
+          "actualResult": "Invoice total changes."
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "Response contains defectKey.",
+          "Response currentStatus is assigned by workflow."
+        ]
+      },
+      "dbExpectation": [
+        "defects record is created.",
+        "defect_created history event is created."
+      ]
+    },
+    {
+      "caseId": "DEFECT-API-006",
+      "title": "Create defect warns for duplicate same project title",
+      "description": "Verify same normalized title in same project returns advisory warning.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A baseline defect exists in Billing Core with matching title."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "forceCreate": "false"
+        },
+        "body": {
+          "title": "Duplicate billing defect {{global.runId}}",
+          "description": "Created by API test.",
+          "projectId": "{{data.projects.billingCore.id}}",
+          "moduleComponent": "Different Module",
+          "environmentId": "{{data.environments.prod.id}}",
+          "severityId": "{{data.severities.high.id}}",
+          "priorityId": "{{data.priorities.p1.id}}",
+          "assignedToUserId": "{{data.users.aishaKhan.id}}",
+          "stepsHtml": "<p>Open invoice review.</p>",
+          "expectedResult": "Invoice total remains stable.",
+          "actualResult": "Invoice total changes."
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 409,
+        "checks": [
+          "Response error.code is possible_duplicate_defect.",
+          "Response contains duplicateCandidates."
+        ]
+      },
+      "dbExpectation": [
+        "Second defect is not created."
+      ]
+    },
+    {
+      "caseId": "DEFECT-API-007",
+      "title": "Create same title in different project succeeds",
+      "description": "Verify duplicate warning is project-scoped only.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A baseline defect exists in Billing Core with same title."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "forceCreate": "false"
+        },
+        "body": {
+          "title": "Cross project duplicate {{global.runId}}",
+          "description": "Created by API test.",
+          "projectId": "{{data.projects.claimsPortal.id}}",
+          "moduleComponent": "Invoice Review",
+          "environmentId": "{{data.environments.uat.id}}",
+          "severityId": "{{data.severities.high.id}}",
+          "priorityId": "{{data.priorities.p1.id}}",
+          "assignedToUserId": "{{data.users.aishaKhan.id}}",
+          "stepsHtml": "<p>Open invoice review.</p>",
+          "expectedResult": "Invoice total remains stable.",
+          "actualResult": "Invoice total changes."
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response is created.",
+          "No duplicate advisory is returned."
+        ]
+      },
+      "dbExpectation": [
+        "defects record is created in Claims Portal."
+      ]
+    },
+    {
+      "caseId": "DEFECT-API-008",
+      "title": "Create defect rejects missing expected result",
+      "description": "Verify expectedResult is mandatory.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "title": "API defect {{global.runId}}",
+          "description": "Created by API test.",
+          "projectId": "{{data.projects.billingCore.id}}",
+          "moduleComponent": "Invoice Review",
+          "environmentId": "{{data.environments.uat.id}}",
+          "severityId": "{{data.severities.high.id}}",
+          "priorityId": "{{data.priorities.p1.id}}",
+          "assignedToUserId": "{{data.users.aishaKhan.id}}",
+          "stepsHtml": "<p>Open invoice review.</p>",
+          "actualResult": "Invoice total changes."
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates validation error."
+        ]
+      },
+      "dbExpectation": [
+        "No defect is created."
+      ]
+    },
+    {
+      "caseId": "DEFECT-API-009",
+      "title": "Create defect rejects invalid project",
+      "description": "Verify missing project ID is rejected.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/defects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "title": "API defect {{global.runId}}",
+          "description": "Created by API test.",
+          "projectId": "{{missingProjectId}}",
+          "moduleComponent": "Invoice Review",
+          "environmentId": "{{data.environments.uat.id}}",
+          "severityId": "{{data.severities.high.id}}",
+          "priorityId": "{{data.priorities.p1.id}}",
+          "assignedToUserId": "{{data.users.aishaKhan.id}}",
+          "stepsHtml": "<p>Open invoice review.</p>",
+          "expectedResult": "Invoice total remains stable.",
+          "actualResult": "Invoice total changes."
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates data integrity or validation error."
+        ]
+      },
+      "dbExpectation": [
+        "No defect is created."
+      ]
+    },
+    {
+      "caseId": "DEFECT-API-010",
+      "title": "Get defect detail succeeds",
+      "description": "Verify defect detail includes child sections.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains description.",
+          "Response contains allowedNextStatuses.",
+          "Response contains attachments, inlineAssets, and comments arrays."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DEFECT-API-011",
+      "title": "Get defect not found",
+      "description": "Verify missing defect returns not found.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{missingDefectId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates defect not found."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DEFECT-API-012",
+      "title": "Update defect valid status succeeds",
+      "description": "Verify status can move through allowed workflow transition.",
+      "severity": "Critical",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists in Assigned status."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/defects/{{createdDefectId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "currentStatus": "InProgress"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response currentStatus is InProgress."
+        ]
+      },
+      "dbExpectation": [
+        "defects current_status is updated.",
+        "status_changed history event is created."
+      ]
+    },
+    {
+      "caseId": "DEFECT-API-013",
+      "title": "Update defect invalid status transition rejected",
+      "description": "Verify workflow prevents invalid status jump.",
+      "severity": "Critical",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists in Assigned status."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/defects/{{createdDefectId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "currentStatus": "Fixed"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response error.code is invalid_status_transition."
+        ]
+      },
+      "dbExpectation": [
+        "Defect status remains unchanged."
+      ]
+    },
+    {
+      "caseId": "DEFECT-API-014",
+      "title": "Delete defect soft deletes record",
+      "description": "Verify delete marks defect as deleted.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable defect exists."
+      ],
+      "requestMessage": {
+        "method": "DELETE",
+        "path": "/api/v1/defects/{{createdDefectId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 204,
+        "checks": [
+          "Empty response body is returned."
+        ]
+      },
+      "dbExpectation": [
+        "defects is_deleted is true.",
+        "field_updated history event is created."
+      ]
+    },
+    {
+      "caseId": "DEFECT-API-015",
+      "title": "Defects list currently accepts missing bearer token",
+      "description": "Document current live proof-layer behavior where defects can be listed without bearer token.",
+      "severity": "Critical",
+      "precondition": [],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects",
+        "headers": {},
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}

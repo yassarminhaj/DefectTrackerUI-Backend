@@ -1,0 +1,372 @@
+{
+  "module": "Workflow",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "WORKFLOW-API-001",
+      "title": "Get workflow succeeds",
+      "description": "Verify active workflow and transitions are returned.",
+      "severity": "Critical",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/workflow",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains diagram.",
+          "Response contains transitions array."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "WORKFLOW-API-002",
+      "title": "List transitions from valid status succeeds",
+      "description": "Verify allowed statuses can be queried for a workflow status.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/workflow/transitions",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "fromStatus": "InProgress"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response currentStatus is InProgress.",
+          "Response contains allowedStatuses."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "WORKFLOW-API-003",
+      "title": "List transitions rejects missing fromStatus",
+      "description": "Verify fromStatus query is required.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/workflow/transitions",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates fromStatus is required."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "WORKFLOW-API-004",
+      "title": "List transitions rejects unknown status",
+      "description": "Verify unknown workflow status returns validation error.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/workflow/transitions",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "fromStatus": "UnknownStatus"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates status is not in active workflow."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "WORKFLOW-API-005",
+      "title": "Save workflow succeeds",
+      "description": "Verify workflow save creates a new active workflow version and transitions.",
+      "severity": "Critical",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/workflow",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "workflowName": "API Workflow {{global.runId}}",
+          "diagram": {
+            "nodes": [
+              {
+                "id": "n1",
+                "type": "process",
+                "label": "Assigned",
+                "position": {
+                  "x": 100,
+                  "y": 100
+                }
+              },
+              {
+                "id": "n2",
+                "type": "process",
+                "label": "InProgress",
+                "position": {
+                  "x": 300,
+                  "y": 100
+                }
+              }
+            ],
+            "edges": [
+              {
+                "id": "e1",
+                "source": "n1",
+                "target": "n2"
+              }
+            ]
+          }
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response versionNo is incremented.",
+          "Response transitions include Assigned to InProgress."
+        ]
+      },
+      "dbExpectation": [
+        "workflow_definitions new active version is created.",
+        "workflow_transitions are regenerated from diagram."
+      ]
+    },
+    {
+      "caseId": "WORKFLOW-API-006",
+      "title": "Save workflow with empty diagram handled",
+      "description": "Verify malformed or empty workflow body does not crash API.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/workflow",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "workflowName": "Empty Workflow {{global.runId}}",
+          "diagram": {
+            "nodes": [],
+            "edges": []
+          }
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "API returns JSON response.",
+          "No server crash occurs."
+        ]
+      },
+      "dbExpectation": [
+        "Workflow behavior follows current live implementation."
+      ]
+    },
+    {
+      "caseId": "WORKFLOW-API-007",
+      "title": "Save workflow ignores edge with missing node",
+      "description": "Verify invalid edge references do not crash workflow save.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/workflow",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "workflowName": "Invalid Edge {{global.runId}}",
+          "diagram": {
+            "nodes": [
+              {
+                "id": "n1",
+                "type": "process",
+                "label": "Assigned",
+                "position": {
+                  "x": 100,
+                  "y": 100
+                }
+              }
+            ],
+            "edges": [
+              {
+                "id": "e1",
+                "source": "n1",
+                "target": "missing"
+              }
+            ]
+          }
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "API returns workflow response.",
+          "Invalid edge is not converted into active transition."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "WORKFLOW-API-008",
+      "title": "Workflow get currently accepts missing bearer token",
+      "description": "Document current live proof-layer behavior where workflow can be read without bearer token.",
+      "severity": "Critical",
+      "precondition": [],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/workflow",
+        "headers": {},
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains workflow details.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "WORKFLOW-API-009",
+      "title": "Transition lookup supports terminal status",
+      "description": "Verify a status with no outgoing transition returns empty allowedStatuses.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/workflow/transitions",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "fromStatus": "Rejected"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response allowedStatuses is empty when Rejected has no next status."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "WORKFLOW-API-010",
+      "title": "Workflow save preserves diagram JSON",
+      "description": "Verify saved diagram is returned in workflow response.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/workflow",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "workflowName": "Diagram Echo {{global.runId}}",
+          "diagram": {
+            "nodes": [
+              {
+                "id": "n1",
+                "type": "process",
+                "label": "Assigned",
+                "position": {
+                  "x": 10,
+                  "y": 20
+                }
+              }
+            ],
+            "edges": []
+          }
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response diagram contains node n1."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "WORKFLOW-API-011",
+      "title": "Workflow save currently accepts missing token",
+      "description": "Document current live proof-layer behavior where workflow save uses the default seeded actor if bearer token is missing.",
+      "severity": "Critical",
+      "precondition": [],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/workflow",
+        "headers": {},
+        "query": {},
+        "body": {
+          "workflowName": "Unauthorized {{global.runId}}",
+          "diagram": {
+            "nodes": [],
+            "edges": []
+          }
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains workflow details.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}

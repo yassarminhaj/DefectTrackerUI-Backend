@@ -1,0 +1,216 @@
+{
+  "module": "Dashboard",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "DASH-API-001",
+      "title": "Dashboard summary succeeds",
+      "description": "Verify dashboard summary cards are returned.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/dashboard/summary",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}",
+          "X-Data-Context": "All"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains totalDefects.",
+          "Response contains status and severity metrics."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DASH-API-002",
+      "title": "Dashboard summary respects Test context",
+      "description": "Verify summary is filtered to Test environments.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/dashboard/summary",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}",
+          "X-Data-Context": "Test"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Summary counts reflect Test context only."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DASH-API-003",
+      "title": "Dashboard summary respects Prod context",
+      "description": "Verify summary is filtered to Prod environments.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/dashboard/summary",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}",
+          "X-Data-Context": "Prod"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Summary counts reflect Prod context only."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DASH-API-004",
+      "title": "Dashboard summary filters active projects only",
+      "description": "Verify inactive projects are excluded from dashboard metrics.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/dashboard/summary",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}",
+          "X-Data-Context": "All"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Defects from inactive projects are excluded."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DASH-API-005",
+      "title": "Dashboard charts succeeds",
+      "description": "Verify dashboard chart datasets are returned.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/dashboard/charts",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}",
+          "X-Data-Context": "All"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains chart data collections."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DASH-API-006",
+      "title": "Dashboard charts respect project filter",
+      "description": "Verify charts can be filtered by project.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/dashboard/charts",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}",
+          "X-Data-Context": "All"
+        },
+        "query": {
+          "projectId": "{{data.projects.billingCore.id}}"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Chart datasets reflect selected project."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DASH-API-007",
+      "title": "Dashboard handles empty filter result",
+      "description": "Verify dashboard returns stable zero or empty datasets when filters match no records.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/dashboard/charts",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}",
+          "X-Data-Context": "All"
+        },
+        "query": {
+          "projectId": "{{missingProjectId}}"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response is valid JSON.",
+          "No server crash occurs."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "DASH-API-008",
+      "title": "Dashboard summary currently accepts missing bearer token",
+      "description": "Document current live proof-layer behavior where dashboard summary can be read without bearer token.",
+      "severity": "Critical",
+      "precondition": [],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/dashboard/summary",
+        "headers": {},
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains dashboard summary.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}

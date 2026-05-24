@@ -1,0 +1,268 @@
+{
+  "module": "Releases",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "RELEASES-API-001",
+      "title": "List releases succeeds",
+      "description": "Verify releases can be listed.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/releases",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "RELEASES-API-002",
+      "title": "List releases filters by project",
+      "description": "Verify release list can be filtered by project.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/releases",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "projectId": "{{data.projects.billingCore.id}}"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Every returned release belongs to Billing Core."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "RELEASES-API-003",
+      "title": "Create release succeeds",
+      "description": "Verify release can be created for a project.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/releases",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "projectId": "{{data.projects.billingCore.id}}",
+          "releaseVersion": "API-REL-{{global.runId}}",
+          "plannedDeploymentDate": "2026-06-01",
+          "actualDeploymentDate": null,
+          "isActive": true
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "Response releaseVersion matches request."
+        ]
+      },
+      "dbExpectation": [
+        "releases record is created."
+      ]
+    },
+    {
+      "caseId": "RELEASES-API-004",
+      "title": "Create release rejects missing project",
+      "description": "Verify projectId is required.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/releases",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "releaseVersion": "API-REL-NO-PROJECT",
+          "isActive": true
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates validation error."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "RELEASES-API-005",
+      "title": "Create release rejects invalid project",
+      "description": "Verify release cannot be created for a missing project.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/releases",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "projectId": "{{missingProjectId}}",
+          "releaseVersion": "API-REL-MISSING-PROJECT",
+          "isActive": true
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates project not found."
+        ]
+      },
+      "dbExpectation": [
+        "No release is created."
+      ]
+    },
+    {
+      "caseId": "RELEASES-API-006",
+      "title": "Create release rejects duplicate project version",
+      "description": "Verify duplicate release version per project is rejected.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A release exists for Billing Core."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/releases",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "projectId": "{{data.projects.billingCore.id}}",
+          "releaseVersion": "{{existingReleaseVersion}}",
+          "isActive": true
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates release version already exists."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "RELEASES-API-007",
+      "title": "Update release succeeds",
+      "description": "Verify release can be updated.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable release exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/releases/{{createdReleaseId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "actualDeploymentDate": "2026-06-05",
+          "isActive": false
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response actualDeploymentDate matches request.",
+          "Response isActive is false."
+        ]
+      },
+      "dbExpectation": [
+        "releases record is updated."
+      ]
+    },
+    {
+      "caseId": "RELEASES-API-008",
+      "title": "Update release rejects invalid project",
+      "description": "Verify release update rejects missing projectId.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable release exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/releases/{{createdReleaseId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "projectId": "{{missingProjectId}}"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates projectId not found."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "RELEASES-API-009",
+      "title": "Update release not found",
+      "description": "Verify updating a missing release returns not found.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/releases/{{missingReleaseId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "isActive": false
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates release not found."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}

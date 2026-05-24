@@ -1,0 +1,94 @@
+{
+  "businessAssertions": [
+    {
+      "id": "DBAT-BIZ-001",
+      "name": "Severity seed data has four active levels",
+      "sql": "select count(*) = 4 from severity_levels where is_active = true",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-002",
+      "name": "Priority seed data has four active levels",
+      "sql": "select count(*) = 4 from priority_levels where is_active = true",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-003",
+      "name": "Active project operational defect count excludes inactive projects",
+      "sql": "select count(*) = 4 from defects d join projects p on p.id = d.project_id where p.is_active = true and d.is_deleted = false",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-004",
+      "name": "Inactive project defects are retained for audit/history",
+      "sql": "select count(*) >= 1 from defects d join projects p on p.id = d.project_id where p.is_active = false",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-005",
+      "name": "Test context returns only active Test environment defects",
+      "sql": "select count(*) = 3 from defects d join projects p on p.id = d.project_id join environments e on e.id = d.environment_id where p.is_active = true and d.is_deleted = false and e.environment_scope = 'Test'",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-006",
+      "name": "Prod context returns only active Prod environment defects",
+      "sql": "select count(*) = 1 from defects d join projects p on p.id = d.project_id join environments e on e.id = d.environment_id where p.is_active = true and d.is_deleted = false and e.environment_scope = 'Prod'",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-007",
+      "name": "InProgress allows Fixed and Rejected only",
+      "sql": "select count(*) = 2 and bool_and(to_status in ('Fixed', 'Rejected')) from workflow_transitions wt join workflow_definitions wd on wd.id = wt.workflow_definition_id where wd.is_active = true and wt.is_active = true and wt.from_status = 'InProgress'",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-008",
+      "name": "Rejected has no allowed next status",
+      "sql": "select count(*) = 0 from workflow_transitions wt join workflow_definitions wd on wd.id = wt.workflow_definition_id where wd.is_active = true and wt.is_active = true and wt.from_status = 'Rejected'",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-009",
+      "name": "Defects do not use statuses outside active workflow status set",
+      "sql": "with active_statuses as (select from_status as status from workflow_transitions wt join workflow_definitions wd on wd.id = wt.workflow_definition_id where wd.is_active = true and wt.is_active = true union select to_status from workflow_transitions wt join workflow_definitions wd on wd.id = wt.workflow_definition_id where wd.is_active = true and wt.is_active = true) select count(*) = 0 from defects d where d.current_status not in (select status from active_statuses)",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-010",
+      "name": "Release rollout contents are derived from defects",
+      "sql": "select count(*) >= 2 from defects where fixed_in_release_id is not null",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-011",
+      "name": "Inline assets link to existing defects",
+      "sql": "select count(*) = 0 from defect_inline_assets ia left join defects d on d.id = ia.defect_id where d.id is null",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-012",
+      "name": "Attachments link to existing defects",
+      "sql": "select count(*) = 0 from defect_attachments da left join defects d on d.id = da.defect_id where d.id is null",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-013",
+      "name": "Comments link to existing defects",
+      "sql": "select count(*) = 0 from defect_comments dc left join defects d on d.id = dc.defect_id where d.id is null",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-014",
+      "name": "History events have event batch IDs",
+      "sql": "select count(*) = 0 from defect_history_events where event_batch_id is null",
+      "expected": true
+    },
+    {
+      "id": "DBAT-BIZ-015",
+      "name": "One seeded save action groups multiple history rows",
+      "sql": "select count(*) >= 1 from (select event_batch_id from defect_history_events group by event_batch_id having count(*) > 1) grouped_events",
+      "expected": true
+    }
+  ]
+}

@@ -1,0 +1,326 @@
+{
+  "module": "Auth",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "AUTH-API-001",
+      "title": "Login succeeds with valid user",
+      "description": "Verify valid credentials return a bearer token and user profile context.",
+      "severity": "Critical",
+      "precondition": [
+        "Seeded active user credentials are available."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "headers": {},
+        "query": {},
+        "body": {
+          "username": "{{secrets.testUsername}}",
+          "password": "{{secrets.testPassword}}",
+          "dataContext": "Test"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains accessToken.",
+          "Response contains refreshToken.",
+          "Response user.username matches request.",
+          "activeDataContext is Test."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "AUTH-API-002",
+      "title": "Login rejects missing username",
+      "description": "Verify login fails when username is absent in the current live API.",
+      "severity": "High",
+      "precondition": [],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "headers": {},
+        "query": {},
+        "body": {
+          "password": "{{secrets.testPassword}}"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 401,
+        "checks": [
+          "Response error.code is invalid_credentials.",
+          "No token is returned."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "AUTH-API-003",
+      "title": "Login currently accepts username without password",
+      "description": "Document current live proof-layer behavior where login validates active username but does not yet enforce password verification.",
+      "severity": "Critical",
+      "precondition": [],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "headers": {},
+        "query": {},
+        "body": {
+          "username": "{{secrets.testUsername}}"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains accessToken.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "AUTH-API-004",
+      "title": "Login currently accepts username with wrong password",
+      "description": "Document current live proof-layer behavior where password value is not yet verified.",
+      "severity": "Critical",
+      "precondition": [],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "headers": {},
+        "query": {},
+        "body": {
+          "username": "{{secrets.testUsername}}",
+          "password": "wrong-password"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains accessToken.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "AUTH-API-005",
+      "title": "Refresh token succeeds",
+      "description": "Verify refresh endpoint returns a new access token for a valid refresh token.",
+      "severity": "High",
+      "precondition": [
+        "A valid refresh token is available from login."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/auth/refresh",
+        "headers": {},
+        "query": {},
+        "body": {
+          "refreshToken": "{{global.refreshToken}}"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains accessToken.",
+          "Response contains refreshToken."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "AUTH-API-006",
+      "title": "Refresh token currently accepts empty token",
+      "description": "Document current live behavior where refresh issues a token even when refreshToken is omitted.",
+      "severity": "High",
+      "precondition": [],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/auth/refresh",
+        "headers": {},
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains accessToken.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "AUTH-API-007",
+      "title": "Current user succeeds",
+      "description": "Verify authenticated user profile can be read.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains user id.",
+          "Response contains availableDataContexts."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "AUTH-API-008",
+      "title": "Current user without token returns default user",
+      "description": "Document current live proof-layer behavior where missing bearer token falls back to the default seeded user.",
+      "severity": "Critical",
+      "precondition": [],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "headers": {},
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains user id.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "AUTH-API-009",
+      "title": "Update own profile succeeds",
+      "description": "Verify user can update own email profile field.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/auth/profile",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "email": "qa.profile.{{global.runId}}@example.com"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response email matches request."
+        ]
+      },
+      "dbExpectation": [
+        "app_users current user email is updated."
+      ]
+    },
+    {
+      "caseId": "AUTH-API-010",
+      "title": "Update own profile currently accepts non-email string",
+      "description": "Document current live behavior where profile email format is not yet validated.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/auth/profile",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "email": "not-an-email-{{global.runId}}"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response email matches request value.",
+          "This is a validation gap to harden later."
+        ]
+      },
+      "dbExpectation": [
+        "app_users current user email is updated per current behavior."
+      ]
+    },
+    {
+      "caseId": "AUTH-API-011",
+      "title": "Change own password succeeds",
+      "description": "Verify password change accepts previous, new, and confirm password.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/auth/password",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "previousPassword": "{{secrets.testPassword}}",
+          "newPassword": "Welcome1234",
+          "confirmPassword": "Welcome1234"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 204,
+        "checks": [
+          "Empty response body is returned."
+        ]
+      },
+      "dbExpectation": [
+        "user_password_events self_change event is created."
+      ]
+    },
+    {
+      "caseId": "AUTH-API-012",
+      "title": "Change own password rejects mismatched confirmation",
+      "description": "Verify password change rejects different new and confirm values.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/auth/password",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "previousPassword": "{{secrets.testPassword}}",
+          "newPassword": "Welcome1234",
+          "confirmPassword": "Welcome5678"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates validation error."
+        ]
+      },
+      "dbExpectation": [
+        "Password is not changed."
+      ]
+    }
+  ]
+}

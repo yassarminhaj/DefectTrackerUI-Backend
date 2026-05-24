@@ -1,0 +1,2077 @@
+openapi: 3.0.3
+info:
+  title: Defect Tracker API
+  version: 1.0.0
+  description: >
+    Phase 1 API contract for the Defect Tracking Tool. The API uses JWT bearer
+    authentication. Data context is supplied separately through X-Data-Context
+    so the same token can be used while switching between Test, Prod, and All.
+servers:
+  - url: /api/v1
+    description: Version 1 API
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Projects
+  - name: Environments
+  - name: Releases
+  - name: Workflow
+  - name: Defects
+  - name: Attachments
+  - name: Inline Assets
+  - name: Comments
+  - name: History
+  - name: Dashboard
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and receive access tokens
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh an access token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout and revoke refresh token
+      operationId: logout
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '204':
+          description: Logged out
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current authenticated user
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DataContextHeader'
+      responses:
+        '200':
+          description: Current user profile and active context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/profile:
+    patch:
+      tags: [Auth]
+      summary: Update current user's profile email
+      operationId: updateMyProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/password:
+    post:
+      tags: [Auth]
+      summary: Change current user's password
+      operationId: changeMyPassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+      responses:
+        '204':
+          description: Password changed
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users:
+    get:
+      tags: [Users]
+      summary: List users
+      operationId: listUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/IsActiveQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          description: Users returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+    post:
+      tags: [Users]
+      summary: Create a user
+      operationId: createUser
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/{userId}:
+    patch:
+      tags: [Users]
+      summary: Update user details or account status
+      operationId: updateUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{userId}/password:
+    post:
+      tags: [Users]
+      summary: Reset a user's password
+      operationId: resetUserPassword
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPasswordResetRequest'
+      responses:
+        '204':
+          description: Password reset
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List projects
+      operationId: listProjects
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/IsActiveQuery'
+      responses:
+        '200':
+          description: Projects returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectListResponse'
+    post:
+      tags: [Projects]
+      summary: Create a project
+      operationId: createProject
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectWriteRequest'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /projects/{projectId}:
+    patch:
+      tags: [Projects]
+      summary: Update a project
+      operationId: updateProject
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectWriteRequest'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /environments:
+    get:
+      tags: [Environments]
+      summary: List environments
+      operationId: listEnvironments
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/IsActiveQuery'
+        - name: scope
+          in: query
+          schema:
+            $ref: '#/components/schemas/EnvironmentScope'
+      responses:
+        '200':
+          description: Environments returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentListResponse'
+    post:
+      tags: [Environments]
+      summary: Create an environment
+      operationId: createEnvironment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvironmentWriteRequest'
+      responses:
+        '201':
+          description: Environment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Environment'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /environments/{environmentId}:
+    patch:
+      tags: [Environments]
+      summary: Update an environment
+      operationId: updateEnvironment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EnvironmentIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvironmentWriteRequest'
+      responses:
+        '200':
+          description: Environment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Environment'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /releases:
+    get:
+      tags: [Releases]
+      summary: List releases
+      operationId: listReleases
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdQuery'
+        - $ref: '#/components/parameters/IsActiveQuery'
+      responses:
+        '200':
+          description: Releases returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseListResponse'
+    post:
+      tags: [Releases]
+      summary: Create a release
+      operationId: createRelease
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseWriteRequest'
+      responses:
+        '201':
+          description: Release created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Release'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /releases/{releaseId}:
+    patch:
+      tags: [Releases]
+      summary: Update a release
+      operationId: updateRelease
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReleaseIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseWriteRequest'
+      responses:
+        '200':
+          description: Release updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Release'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /workflow:
+    get:
+      tags: [Workflow]
+      summary: Get active workflow definition and transitions
+      operationId: getWorkflow
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Active workflow returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowResponse'
+
+    post:
+      tags: [Workflow]
+      summary: Save workflow diagram and regenerate transitions
+      operationId: saveWorkflow
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowSaveRequest'
+      responses:
+        '200':
+          description: Workflow saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /workflow/transitions:
+    get:
+      tags: [Workflow]
+      summary: List active workflow transitions
+      operationId: listWorkflowTransitions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fromStatus
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transitions returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkflowTransition'
+
+  /defects:
+    get:
+      tags: [Defects]
+      summary: List defects
+      operationId: listDefects
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DataContextHeader'
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/ProjectIdQuery'
+        - $ref: '#/components/parameters/EnvironmentIdQuery'
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: severityId
+          in: query
+          schema:
+            type: integer
+        - name: priorityId
+          in: query
+          schema:
+            type: integer
+        - name: assignedToUserId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: releaseId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          description: Defects returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectListResponse'
+    post:
+      tags: [Defects]
+      summary: Create a defect
+      operationId: createDefect
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DataContextHeader'
+        - name: forceCreate
+          in: query
+          description: Set to true only after the client has reviewed same-project, same-title duplicate candidates and the tester deliberately chooses to create the defect anyway.
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefectCreateRequest'
+      responses:
+        '201':
+          description: Defect created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Possible same-project, same-title duplicate defect found. The defect was not created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PossibleDuplicateDefectResponse'
+
+  /defects/{defectId}:
+    get:
+      tags: [Defects]
+      summary: Get defect detail
+      operationId: getDefect
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+        - $ref: '#/components/parameters/DataContextHeader'
+      responses:
+        '200':
+          description: Defect detail returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Defects]
+      summary: Update a defect
+      operationId: updateDefect
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+        - $ref: '#/components/parameters/DataContextHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefectUpdateRequest'
+      responses:
+        '200':
+          description: Defect updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Defects]
+      summary: Soft-delete a defect
+      description: The current UI does not expose this action. Intended for controlled/admin use later.
+      operationId: deleteDefect
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+      responses:
+        '204':
+          description: Defect soft-deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /defects/{defectId}/allowed-statuses:
+    get:
+      tags: [Defects]
+      summary: Get allowed next statuses for a defect
+      operationId: getAllowedStatusesForDefect
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+      responses:
+        '200':
+          description: Allowed next statuses returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [currentStatus, allowedStatuses]
+                properties:
+                  currentStatus:
+                    type: string
+                  allowedStatuses:
+                    type: array
+                    items:
+                      type: string
+
+  /defects/{defectId}/attachments:
+    get:
+      tags: [Attachments]
+      summary: List defect attachments
+      operationId: listDefectAttachments
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+      responses:
+        '200':
+          description: Attachments returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DefectAttachment'
+    post:
+      tags: [Attachments]
+      summary: Upload a defect attachment
+      operationId: uploadDefectAttachment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Attachment uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectAttachment'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /defects/{defectId}/attachments/{attachmentId}:
+    delete:
+      tags: [Attachments]
+      summary: Soft-delete a defect attachment
+      operationId: deleteDefectAttachment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+        - $ref: '#/components/parameters/AttachmentIdPath'
+      responses:
+        '204':
+          description: Attachment soft-deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /defects/{defectId}/attachments/{attachmentId}/content:
+    get:
+      tags: [Attachments]
+      summary: Download or preview attachment content
+      operationId: getAttachmentContent
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+        - $ref: '#/components/parameters/AttachmentIdPath'
+      responses:
+        '200':
+          description: File content
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /defects/{defectId}/inline-assets:
+    post:
+      tags: [Inline Assets]
+      summary: Upload an inline Steps to Replicate image
+      operationId: uploadInlineAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                widthPx:
+                  type: integer
+                  minimum: 1
+                heightPx:
+                  type: integer
+                  minimum: 1
+      responses:
+        '201':
+          description: Inline asset uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectInlineAsset'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /defects/{defectId}/inline-assets/{assetId}:
+    patch:
+      tags: [Inline Assets]
+      summary: Update inline asset display dimensions
+      operationId: updateInlineAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+        - $ref: '#/components/parameters/AssetIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InlineAssetUpdateRequest'
+      responses:
+        '200':
+          description: Inline asset updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectInlineAsset'
+    delete:
+      tags: [Inline Assets]
+      summary: Soft-delete an inline Steps to Replicate asset
+      operationId: deleteInlineAsset
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+        - $ref: '#/components/parameters/AssetIdPath'
+      responses:
+        '204':
+          description: Inline asset soft-deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /defects/{defectId}/inline-assets/{assetId}/content:
+    get:
+      tags: [Inline Assets]
+      summary: Read inline image content
+      operationId: getInlineAssetContent
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+        - $ref: '#/components/parameters/AssetIdPath'
+      responses:
+        '200':
+          description: Inline image content
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /defects/{defectId}/comments:
+    get:
+      tags: [Comments]
+      summary: List defect comments
+      operationId: listDefectComments
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+      responses:
+        '200':
+          description: Comments returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DefectComment'
+    post:
+      tags: [Comments]
+      summary: Add a defect comment
+      operationId: addDefectComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreateRequest'
+      responses:
+        '201':
+          description: Comment added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectComment'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /defects/{defectId}/comments/{commentId}:
+    patch:
+      tags: [Comments]
+      summary: Update a defect comment
+      operationId: updateDefectComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+        - $ref: '#/components/parameters/CommentIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentUpdateRequest'
+      responses:
+        '200':
+          description: Comment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectComment'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Comments]
+      summary: Soft-delete a defect comment
+      operationId: deleteDefectComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+        - $ref: '#/components/parameters/CommentIdPath'
+      responses:
+        '204':
+          description: Comment soft-deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /defects/{defectId}/history:
+    get:
+      tags: [History]
+      summary: List defect history events
+      operationId: listDefectHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DefectIdPath'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          description: History returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectHistoryResponse'
+
+  /dashboard/summary:
+    get:
+      tags: [Dashboard]
+      summary: Get dashboard KPI summary
+      operationId: getDashboardSummary
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DataContextHeader'
+      responses:
+        '200':
+          description: Dashboard summary returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummaryResponse'
+
+  /dashboard/charts:
+    get:
+      tags: [Dashboard]
+      summary: Get dashboard chart data
+      operationId: getDashboardCharts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DataContextHeader'
+      responses:
+        '200':
+          description: Dashboard chart data returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardChartsResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    DataContextHeader:
+      name: X-Data-Context
+      in: header
+      required: false
+      description: Overrides the user's default data context for this request.
+      schema:
+        $ref: '#/components/schemas/DataContext'
+    SearchQuery:
+      name: search
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 120
+    IsActiveQuery:
+      name: isActive
+      in: query
+      required: false
+      schema:
+        type: boolean
+    PageQuery:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeQuery:
+      name: pageSize
+      in: query
+      required: false
+      schema:
+        type: integer
+        enum: [10, 40, 100]
+        default: 10
+    ProjectIdPath:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EnvironmentIdPath:
+      name: environmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ReleaseIdPath:
+      name: releaseId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UserIdPath:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DefectIdPath:
+      name: defectId
+      in: path
+      required: true
+      description: Defect UUID, not the display key.
+      schema:
+        type: string
+        format: uuid
+    AttachmentIdPath:
+      name: attachmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AssetIdPath:
+      name: assetId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CommentIdPath:
+      name: commentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProjectIdQuery:
+      name: projectId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+    EnvironmentIdQuery:
+      name: environmentId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    Unauthorized:
+      description: Authentication failed or token expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+
+  schemas:
+    DataContext:
+      type: string
+      enum: [Test, Prod, All]
+
+    EnvironmentScope:
+      type: string
+      enum: [Test, Prod]
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 80
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+        dataContext:
+          $ref: '#/components/schemas/DataContext'
+
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    LogoutRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+
+    AuthTokenResponse:
+      type: object
+      required: [accessToken, refreshToken, tokenType, expiresIn, user, activeDataContext]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          example: 1800
+        activeDataContext:
+          $ref: '#/components/schemas/DataContext'
+        user:
+          $ref: '#/components/schemas/UserSummary'
+
+    CurrentUserResponse:
+      type: object
+      required: [user, activeDataContext, availableDataContexts]
+      properties:
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        activeDataContext:
+          $ref: '#/components/schemas/DataContext'
+        availableDataContexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataContext'
+
+    ProfileUpdateRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+
+    PasswordChangeRequest:
+      type: object
+      required: [previousPassword, newPassword, confirmPassword]
+      properties:
+        previousPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
+        confirmPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
+
+    UserPasswordResetRequest:
+      type: object
+      required: [newPassword, confirmPassword]
+      properties:
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
+        confirmPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
+
+    UserCreateRequest:
+      type: object
+      required: [name, email, username, password, confirmPassword, isActive]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        username:
+          type: string
+          minLength: 3
+          maxLength: 80
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+        confirmPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
+        isActive:
+          type: boolean
+        defaultDataContext:
+          $ref: '#/components/schemas/DataContext'
+
+    UserUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        username:
+          type: string
+          minLength: 3
+          maxLength: 80
+        isActive:
+          type: boolean
+        defaultDataContext:
+          $ref: '#/components/schemas/DataContext'
+
+    UserSummary:
+      type: object
+      required: [id, name, username, email]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+
+    User:
+      allOf:
+        - $ref: '#/components/schemas/UserSummary'
+        - type: object
+          required: [isActive, defaultDataContext, createdAt, updatedAt]
+          properties:
+            isActive:
+              type: boolean
+            defaultDataContext:
+              $ref: '#/components/schemas/DataContext'
+            lastLoginAt:
+              type: string
+              format: date-time
+              nullable: true
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+
+    UserListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    ProjectWriteRequest:
+      type: object
+      required: [projectName, isActive]
+      properties:
+        projectName:
+          type: string
+          minLength: 2
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 500
+        isActive:
+          type: boolean
+
+    Project:
+      type: object
+      required: [id, projectName, isActive, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectName:
+          type: string
+        description:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProjectListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+
+    EnvironmentWriteRequest:
+      type: object
+      required: [environmentName, isActive]
+      properties:
+        environmentName:
+          type: string
+          minLength: 2
+          maxLength: 50
+        environmentScope:
+          $ref: '#/components/schemas/EnvironmentScope'
+          description: Optional on create. If omitted, the API infers Prod only for environmentName exactly PROD, Production, or Live; all other names are Test. PATCH may use this field as an admin override.
+        description:
+          type: string
+          maxLength: 500
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer
+          minimum: 0
+
+    Environment:
+      type: object
+      required: [id, environmentName, environmentScope, isActive, sortOrder]
+      properties:
+        id:
+          type: string
+          format: uuid
+        environmentName:
+          type: string
+        environmentScope:
+          $ref: '#/components/schemas/EnvironmentScope'
+        description:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    EnvironmentListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Environment'
+
+    ReleaseWriteRequest:
+      type: object
+      required: [projectId, releaseVersion, isActive]
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        releaseVersion:
+          type: string
+          minLength: 1
+          maxLength: 80
+        plannedDeploymentDate:
+          type: string
+          format: date
+          nullable: true
+        actualDeploymentDate:
+          type: string
+          format: date
+          nullable: true
+        isActive:
+          type: boolean
+
+    Release:
+      type: object
+      required: [id, projectId, releaseVersion, isActive]
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        releaseVersion:
+          type: string
+        plannedDeploymentDate:
+          type: string
+          format: date
+          nullable: true
+        actualDeploymentDate:
+          type: string
+          format: date
+          nullable: true
+        isActive:
+          type: boolean
+
+    ReleaseListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Release'
+
+    LookupValue:
+      type: object
+      required: [id, name, rank, isActive]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        rank:
+          type: integer
+        colorToken:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+
+    WorkflowSaveRequest:
+      type: object
+      required: [workflowName, diagram]
+      properties:
+        workflowName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        diagram:
+          type: object
+          description: Visual workflow JSON from the canvas.
+          additionalProperties: true
+
+    WorkflowResponse:
+      type: object
+      required: [id, workflowName, versionNo, isActive, diagram, transitions]
+      properties:
+        id:
+          type: string
+          format: uuid
+        workflowName:
+          type: string
+        versionNo:
+          type: integer
+        isActive:
+          type: boolean
+        diagram:
+          type: object
+          additionalProperties: true
+        transitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowTransition'
+
+    WorkflowTransition:
+      type: object
+      required: [id, fromStatus, toStatus, displayOrder, isActive]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fromStatus:
+          type: string
+        toStatus:
+          type: string
+        displayOrder:
+          type: integer
+        isActive:
+          type: boolean
+
+    DefectCreateRequest:
+      type: object
+      required:
+        - title
+        - description
+        - projectId
+        - environmentId
+        - severityId
+        - priorityId
+        - assignedToUserId
+        - expectedResult
+        - actualResult
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+          minLength: 5
+        projectId:
+          type: string
+          format: uuid
+        moduleComponent:
+          type: string
+          maxLength: 120
+        environmentId:
+          type: string
+          format: uuid
+        severityId:
+          type: integer
+        priorityId:
+          type: integer
+        assignedToUserId:
+          type: string
+          format: uuid
+        stepsHtml:
+          type: string
+        expectedResult:
+          type: string
+          minLength: 2
+          maxLength: 1500
+        actualResult:
+          type: string
+          minLength: 2
+          maxLength: 1500
+
+    DefectUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+          minLength: 5
+        projectId:
+          type: string
+          format: uuid
+        moduleComponent:
+          type: string
+          maxLength: 120
+        environmentId:
+          type: string
+          format: uuid
+        severityId:
+          type: integer
+        priorityId:
+          type: integer
+        currentStatus:
+          type: string
+          maxLength: 120
+        assignedToUserId:
+          type: string
+          format: uuid
+        stepsHtml:
+          type: string
+        expectedResult:
+          type: string
+          minLength: 2
+          maxLength: 1500
+        actualResult:
+          type: string
+          minLength: 2
+          maxLength: 1500
+        fixedInReleaseId:
+          type: string
+          format: uuid
+          nullable: true
+        fixDate:
+          type: string
+          format: date
+          nullable: true
+        closureDate:
+          type: string
+          format: date
+          nullable: true
+
+    DefectSummary:
+      type: object
+      required:
+        - id
+        - defectKey
+        - title
+        - project
+        - environment
+        - severity
+        - priority
+        - currentStatus
+        - assignedTo
+        - createdBy
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        defectKey:
+          type: string
+        title:
+          type: string
+        project:
+          $ref: '#/components/schemas/Project'
+        environment:
+          $ref: '#/components/schemas/Environment'
+        severity:
+          $ref: '#/components/schemas/LookupValue'
+        priority:
+          $ref: '#/components/schemas/LookupValue'
+        currentStatus:
+          type: string
+        assignedTo:
+          $ref: '#/components/schemas/UserSummary'
+        createdBy:
+          $ref: '#/components/schemas/UserSummary'
+        fixedInRelease:
+          $ref: '#/components/schemas/Release'
+          nullable: true
+        fixDate:
+          type: string
+          format: date
+          nullable: true
+        closureDate:
+          type: string
+          format: date
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DefectDetail:
+      allOf:
+        - $ref: '#/components/schemas/DefectSummary'
+        - type: object
+          required: [description, stepsHtml, expectedResult, actualResult, allowedNextStatuses]
+          properties:
+            description:
+              type: string
+            moduleComponent:
+              type: string
+              nullable: true
+            stepsHtml:
+              type: string
+              nullable: true
+            expectedResult:
+              type: string
+            actualResult:
+              type: string
+            allowedNextStatuses:
+              type: array
+              items:
+                type: string
+            attachments:
+              type: array
+              items:
+                $ref: '#/components/schemas/DefectAttachment'
+            inlineAssets:
+              type: array
+              items:
+                $ref: '#/components/schemas/DefectInlineAsset'
+            comments:
+              type: array
+              items:
+                $ref: '#/components/schemas/DefectComment'
+
+    DefectListResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DefectSummary'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    DuplicateDefectCandidate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        defectKey:
+          type: string
+        title:
+          type: string
+        project:
+          type: string
+        environment:
+          type: string
+        moduleComponent:
+          type: string
+          nullable: true
+        status:
+          type: string
+        assignedTo:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    PossibleDuplicateDefectResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: possible_duplicate_defect
+            message:
+              type: string
+            duplicateCandidates:
+              type: array
+              items:
+                $ref: '#/components/schemas/DuplicateDefectCandidate'
+
+    DefectAttachment:
+      type: object
+      required: [id, defectId, originalFilename, contentType, fileExtension, fileSizeBytes, uploadedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        defectId:
+          type: string
+          format: uuid
+        originalFilename:
+          type: string
+        contentType:
+          type: string
+          nullable: true
+        fileExtension:
+          type: string
+          enum: [png, jpg, jpeg, pdf, doc, docx, txt, log, json, csv]
+        fileSizeBytes:
+          type: integer
+          format: int64
+        contentUrl:
+          type: string
+        uploadedBy:
+          $ref: '#/components/schemas/UserSummary'
+        uploadedAt:
+          type: string
+          format: date-time
+
+    DefectInlineAsset:
+      type: object
+      required: [id, defectId, assetKind, contentType, contentUrl, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        defectId:
+          type: string
+          format: uuid
+        assetKind:
+          type: string
+          example: steps_image
+        originalFilename:
+          type: string
+          nullable: true
+        contentType:
+          type: string
+          enum: [image/png, image/jpeg]
+        fileSizeBytes:
+          type: integer
+          format: int64
+          nullable: true
+        widthPx:
+          type: integer
+          nullable: true
+        heightPx:
+          type: integer
+          nullable: true
+        contentUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    InlineAssetUpdateRequest:
+      type: object
+      properties:
+        widthPx:
+          type: integer
+          minimum: 1
+        heightPx:
+          type: integer
+          minimum: 1
+
+    CommentCreateRequest:
+      type: object
+      required: [commentText]
+      properties:
+        commentText:
+          type: string
+          minLength: 2
+          maxLength: 500
+
+    CommentUpdateRequest:
+      type: object
+      required: [commentText]
+      properties:
+        commentText:
+          type: string
+          minLength: 2
+          maxLength: 500
+
+    DefectComment:
+      type: object
+      required: [id, defectId, commentText, createdBy, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        defectId:
+          type: string
+          format: uuid
+        commentText:
+          type: string
+        createdBy:
+          $ref: '#/components/schemas/UserSummary'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    DefectHistoryEvent:
+      type: object
+      required: [id, defectId, eventBatchId, eventType, actor, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        defectId:
+          type: string
+          format: uuid
+        eventBatchId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - defect_created
+            - field_updated
+            - status_changed
+            - assignment_changed
+            - severity_changed
+            - priority_changed
+            - release_updated
+            - comment_added
+            - comment_updated
+            - comment_deleted
+            - attachment_uploaded
+            - attachment_deleted
+            - inline_asset_added
+            - inline_asset_deleted
+        fieldName:
+          type: string
+          nullable: true
+        oldValue:
+          type: string
+          nullable: true
+        newValue:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        actor:
+          $ref: '#/components/schemas/UserSummary'
+        createdAt:
+          type: string
+          format: date-time
+
+    DefectHistoryResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DefectHistoryEvent'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    DashboardSummaryResponse:
+      type: object
+      required: [dataContext, totalDefects, openDefects, fixedDefects, closedDefects, reopenedDefects, criticalDefects]
+      properties:
+        dataContext:
+          $ref: '#/components/schemas/DataContext'
+        totalDefects:
+          type: integer
+        openDefects:
+          type: integer
+        fixedDefects:
+          type: integer
+        closedDefects:
+          type: integer
+        reopenedDefects:
+          type: integer
+        criticalDefects:
+          type: integer
+
+    DashboardChartsResponse:
+      type: object
+      required: [dataContext, charts]
+      properties:
+        dataContext:
+          $ref: '#/components/schemas/DataContext'
+        charts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardChart'
+
+    DashboardChart:
+      type: object
+      required: [key, title, chartType, series]
+      properties:
+        key:
+          type: string
+        title:
+          type: string
+        chartType:
+          type: string
+          enum: [bar, stacked_bar, pie, line]
+        series:
+          type: array
+          items:
+            type: object
+            required: [label, value]
+            properties:
+              label:
+                type: string
+              value:
+                type: number
+
+    Pagination:
+      type: object
+      required: [page, pageSize, totalItems, totalPages]
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+          enum: [10, 40, 100]
+        totalItems:
+          type: integer
+        totalPages:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+    ValidationErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, fields]
+          properties:
+            code:
+              type: string
+              example: validation_error
+            message:
+              type: string
+              example: Please correct the highlighted fields.
+            fields:
+              type: array
+              items:
+                type: object
+                required: [field, message]
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+
+security:
+  - bearerAuth: []

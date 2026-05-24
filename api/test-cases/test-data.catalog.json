@@ -1,0 +1,135 @@
+{
+  "purpose": "Semantic selectors for data lookup. Framework resolves IDs from the current API/DB before execution.",
+  "projects": {
+    "billingCore": {
+      "selector": {
+        "projectName": "Billing Core",
+        "isActive": true
+      }
+    },
+    "claimsPortal": {
+      "selector": {
+        "projectName": "Claims Portal",
+        "isActive": true
+      }
+    },
+    "inactiveProject": {
+      "selector": {
+        "isActive": false
+      }
+    }
+  },
+  "environments": {
+    "dev": {
+      "selector": {
+        "environmentName": "DEV",
+        "environmentScope": "Test",
+        "isActive": true
+      }
+    },
+    "sit": {
+      "selector": {
+        "environmentName": "SIT",
+        "environmentScope": "Test",
+        "isActive": true
+      }
+    },
+    "uat": {
+      "selector": {
+        "environmentName": "UAT",
+        "environmentScope": "Test",
+        "isActive": true
+      }
+    },
+    "prod": {
+      "selector": {
+        "environmentName": "PROD",
+        "environmentScope": "Prod",
+        "isActive": true
+      }
+    }
+  },
+  "severities": {
+    "critical": {
+      "selector": {
+        "name": "Critical"
+      }
+    },
+    "high": {
+      "selector": {
+        "name": "High"
+      }
+    },
+    "medium": {
+      "selector": {
+        "name": "Medium"
+      }
+    },
+    "low": {
+      "selector": {
+        "name": "Low"
+      }
+    }
+  },
+  "priorities": {
+    "p1": {
+      "selector": {
+        "name": "P1"
+      }
+    },
+    "p2": {
+      "selector": {
+        "name": "P2"
+      }
+    },
+    "p3": {
+      "selector": {
+        "name": "P3"
+      }
+    },
+    "p4": {
+      "selector": {
+        "name": "P4"
+      }
+    }
+  },
+  "users": {
+    "aishaKhan": {
+      "selector": {
+        "username": "aisha.khan",
+        "isActive": true
+      }
+    },
+    "qaUser": {
+      "selector": {
+        "username": "qa.user",
+        "isActive": true
+      }
+    }
+  },
+  "releases": {
+    "billingRelease": {
+      "selector": {
+        "project": "billingCore",
+        "isActive": true
+      }
+    }
+  },
+  "workflowStatuses": {
+    "assigned": {
+      "value": "Assigned"
+    },
+    "inProgress": {
+      "value": "InProgress"
+    },
+    "fixed": {
+      "value": "Fixed"
+    },
+    "closed": {
+      "value": "Closed"
+    },
+    "rejected": {
+      "value": "Rejected"
+    }
+  }
+}

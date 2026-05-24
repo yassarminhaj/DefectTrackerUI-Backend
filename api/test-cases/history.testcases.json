@@ -1,0 +1,135 @@
+{
+  "module": "History",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "HISTORY-API-001",
+      "title": "List defect history succeeds",
+      "description": "Verify defect history timeline is returned.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists with history events."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/history",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array.",
+          "History items contain eventType and createdAt."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "HISTORY-API-002",
+      "title": "History shows defect creation event",
+      "description": "Verify created defect has defect_created history event.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A defect was created by API."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/history",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "At least one item has eventType defect_created."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "HISTORY-API-003",
+      "title": "History shows status change event",
+      "description": "Verify status update writes history event.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A defect status was updated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/history",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "At least one item has eventType status_changed."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "HISTORY-API-004",
+      "title": "History invalid defect returns stable response",
+      "description": "Verify missing defect history request does not crash.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{missingDefectId}}/history",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "API returns JSON response per current live behavior.",
+          "No server crash occurs."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "HISTORY-API-005",
+      "title": "History currently accepts missing bearer token",
+      "description": "Document current live proof-layer behavior where history can be read without bearer token.",
+      "severity": "Critical",
+      "precondition": [
+        "A defect exists."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/defects/{{createdDefectId}}/history",
+        "headers": {},
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array.",
+          "This is a known hardening gap before production auth."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}

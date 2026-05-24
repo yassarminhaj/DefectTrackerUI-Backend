@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Defect Tracker (Docker)",
+      "Group": "Servers",
+      "Host": "localhost",
+      "Port": 5434,
+      "MaintenanceDB": "defect_tracker",
+      "Username": "defect_user",
+      "SSLMode": "prefer"
+    }
+  }
+}

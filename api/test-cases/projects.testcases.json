@@ -1,0 +1,267 @@
+{
+  "module": "Projects",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "PROJECTS-API-001",
+      "title": "List projects succeeds",
+      "description": "Verify projects can be listed.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/projects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "PROJECTS-API-002",
+      "title": "List projects filters active flag",
+      "description": "Verify projects list can filter by active status.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/projects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "isActive": "true"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Every returned record has isActive true."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "PROJECTS-API-003",
+      "title": "Search projects succeeds",
+      "description": "Verify search filters projects.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/projects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "search": "Billing"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Returned records match search criteria when data exists."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "PROJECTS-API-004",
+      "title": "Create projects succeeds",
+      "description": "Verify a projects record can be created.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/projects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "projectName": "API Project {{global.runId}}",
+          "description": "Created by API test.",
+          "isActive": true
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "Response projectName matches request."
+        ]
+      },
+      "dbExpectation": [
+        "projects record is created."
+      ]
+    },
+    {
+      "caseId": "PROJECTS-API-005",
+      "title": "Create projects rejects duplicate name",
+      "description": "Verify duplicate projects name is rejected.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/projects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "projectName": "Billing Core",
+          "description": "Created by API test.",
+          "isActive": true
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates name already exists."
+        ]
+      },
+      "dbExpectation": [
+        "No projects record is created."
+      ]
+    },
+    {
+      "caseId": "PROJECTS-API-006",
+      "title": "Create projects rejects missing name",
+      "description": "Verify projectName is mandatory.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/projects",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "description": "Created by API test.",
+          "isActive": true
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates validation error."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "PROJECTS-API-007",
+      "title": "Update projects succeeds",
+      "description": "Verify projects can be updated.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable projects record exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/projects/{{createdProjectId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "projectName": "API Project Updated {{global.runId}}",
+          "description": "Updated by API test.",
+          "isActive": false
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response projectName or status matches request."
+        ]
+      },
+      "dbExpectation": [
+        "projects record is updated."
+      ]
+    },
+    {
+      "caseId": "PROJECTS-API-008",
+      "title": "Update projects rejects duplicate name",
+      "description": "Verify projects update prevents duplicate name.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable projects record exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/projects/{{createdProjectId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "projectName": "Billing Core"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates name already exists."
+        ]
+      },
+      "dbExpectation": [
+        "projects record remains unchanged."
+      ]
+    },
+    {
+      "caseId": "PROJECTS-API-009",
+      "title": "Update projects not found",
+      "description": "Verify updating a missing projects returns not found.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/projects/{{missingProjectId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "projectName": "API Project Updated {{global.runId}}",
+          "description": "Updated by API test.",
+          "isActive": false
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates projects not found."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}

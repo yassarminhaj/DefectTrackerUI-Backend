@@ -1,0 +1,331 @@
+{
+  "module": "Environments",
+  "basePath": "/api/v1",
+  "testCases": [
+    {
+      "caseId": "ENV-API-001",
+      "title": "List environments succeeds",
+      "description": "Verify environments can be listed.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/environments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response contains items array."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "ENV-API-002",
+      "title": "List environments filters Test scope",
+      "description": "Verify scope filter returns only Test environments.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/environments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "scope": "Test"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Every returned environment has environmentScope Test."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "ENV-API-003",
+      "title": "List environments filters active flag",
+      "description": "Verify environments list can filter by active status.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/environments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "isActive": "true"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Every returned record has isActive true."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "ENV-API-004",
+      "title": "Search environments succeeds",
+      "description": "Verify search filters environments.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "GET",
+        "path": "/api/v1/environments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {
+          "search": "UAT"
+        },
+        "body": {}
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Returned records match search criteria when data exists."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "ENV-API-005",
+      "title": "Create Prod environment succeeds by inference",
+      "description": "Verify production-like names are scoped as Prod by backend inference.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/environments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "environmentName": "Production",
+          "description": "Production alias test.",
+          "isActive": true,
+          "sortOrder": 30
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response environmentScope is Prod."
+        ]
+      },
+      "dbExpectation": [
+        "environments record is created with Prod scope."
+      ]
+    },
+    {
+      "caseId": "ENV-API-006",
+      "title": "Create environments succeeds",
+      "description": "Verify a environments record can be created.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/environments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "environmentName": "QA-SANDBOX-{{global.runId}}",
+          "description": "API test environment.",
+          "isActive": true,
+          "sortOrder": 20
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "checks": [
+          "Response contains id.",
+          "Response environmentName matches request."
+        ]
+      },
+      "dbExpectation": [
+        "environments record is created."
+      ]
+    },
+    {
+      "caseId": "ENV-API-007",
+      "title": "Create environments rejects duplicate name",
+      "description": "Verify duplicate environments name is rejected.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/environments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "environmentName": "UAT",
+          "description": "API test environment.",
+          "isActive": true,
+          "sortOrder": 20
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates name already exists."
+        ]
+      },
+      "dbExpectation": [
+        "No environments record is created."
+      ]
+    },
+    {
+      "caseId": "ENV-API-008",
+      "title": "Create environments rejects missing name",
+      "description": "Verify environmentName is mandatory.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/environments",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "description": "API test environment.",
+          "isActive": true,
+          "sortOrder": 20
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates validation error."
+        ]
+      },
+      "dbExpectation": []
+    },
+    {
+      "caseId": "ENV-API-009",
+      "title": "Update environments succeeds",
+      "description": "Verify environments can be updated.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable environments record exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/environments/{{createdEnvironmentId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "environmentName": "QA-SANDBOX-UPDATED-{{global.runId}}",
+          "description": "Updated.",
+          "isActive": false,
+          "sortOrder": 21
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response environmentName or status matches request."
+        ]
+      },
+      "dbExpectation": [
+        "environments record is updated."
+      ]
+    },
+    {
+      "caseId": "ENV-API-010",
+      "title": "Update environments rejects duplicate name",
+      "description": "Verify environments update prevents duplicate name.",
+      "severity": "High",
+      "precondition": [
+        "User is authenticated.",
+        "A disposable environments record exists."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/environments/{{createdEnvironmentId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "environmentName": "UAT"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response indicates name already exists."
+        ]
+      },
+      "dbExpectation": [
+        "environments record remains unchanged."
+      ]
+    },
+    {
+      "caseId": "ENV-API-011",
+      "title": "Update environments not found",
+      "description": "Verify updating a missing environments returns not found.",
+      "severity": "Medium",
+      "precondition": [
+        "User is authenticated."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/environments/{{missingEnvironmentId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "environmentName": "QA-SANDBOX-UPDATED-{{global.runId}}",
+          "description": "Updated.",
+          "isActive": false,
+          "sortOrder": 21
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 404,
+        "checks": [
+          "Response indicates environments not found."
+        ]
+      },
+      "dbExpectation": []
+    }
+  ]
+}
