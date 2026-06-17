@@ -23,8 +23,8 @@ These stories describe the database-level product intent used by dbAT++.
 - A defect belongs to one project and one exact environment.
 - A defect has severity, priority, current status, assignee, creator, expected result, and actual result.
 - Created By is the original creator and should remain separate from the latest updater.
-- Fixed defects can be linked to a release through `fixed_in_release_id`.
-- Release rollout contents are derived by querying defects linked to that release.
+- Fixed defects capture a typed Release Version and Release Deployment Date directly on the defect in Phase 1.
+- Release rollout contents are derived from defect-level release fields until release management is introduced in a future phase.
 
 ## Evidence And Discussion
 

@@ -30,8 +30,8 @@
     },
     {
       "caseId": "ATTACH-API-002",
-      "title": "Upload attachment metadata succeeds",
-      "description": "Verify JSON metadata stub creates attachment record in current live API.",
+      "title": "Upload attachment content succeeds",
+      "description": "Verify JSON upload content creates a database record and matching stored file.",
       "severity": "High",
       "precondition": [
         "User is authenticated.",
@@ -47,7 +47,8 @@
         "body": {
           "filename": "invoice-error-{{global.runId}}.png",
           "contentType": "image/png",
-          "fileSizeBytes": 234567
+          "fileSizeBytes": 68,
+          "contentDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
         }
       },
       "expectedResponse": {
@@ -60,14 +61,15 @@
       },
       "dbExpectation": [
         "defect_attachments record is created.",
+        "storage_key points to a physical file.",
         "attachment_uploaded history event is created."
       ]
     },
     {
       "caseId": "ATTACH-API-003",
-      "title": "Upload attachment supports CSV extension",
-      "description": "Verify CSV is accepted as supported attachment extension.",
-      "severity": "Medium",
+      "title": "Upload attachment rejects unsupported extension",
+      "description": "Verify unsupported attachment extensions are rejected.",
+      "severity": "High",
       "precondition": [
         "User is authenticated.",
         "A defect exists."
@@ -82,23 +84,25 @@
         "body": {
           "filename": "defects-{{global.runId}}.csv",
           "contentType": "text/csv",
-          "fileSizeBytes": 100
+          "fileSizeBytes": 100,
+          "contentDataUrl": "data:text/csv;base64,YSxi"
         }
       },
       "expectedResponse": {
-        "statusCode": 201,
+        "statusCode": 400,
         "checks": [
-          "Response fileExtension is csv."
+          "Response error.code is validation_error.",
+          "Response explains allowed file types."
         ]
       },
       "dbExpectation": [
-        "defect_attachments record is created."
+        "No attachment is created."
       ]
     },
     {
       "caseId": "ATTACH-API-004",
       "title": "Upload attachment rejects invalid defect",
-      "description": "Verify foreign-key or not-found handling for invalid defect.",
+      "description": "Verify missing defect ID is handled before metadata insert.",
       "severity": "High",
       "precondition": [
         "User is authenticated."
@@ -113,13 +117,14 @@
         "body": {
           "filename": "invoice-error-{{global.runId}}.png",
           "contentType": "image/png",
-          "fileSizeBytes": 234567
+          "fileSizeBytes": 68,
+          "contentDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
         }
       },
       "expectedResponse": {
-        "statusCode": 400,
+        "statusCode": 404,
         "checks": [
-          "Response indicates data integrity or not found."
+          "Response indicates defect not found."
         ]
       },
       "dbExpectation": [
@@ -183,12 +188,13 @@
     },
     {
       "caseId": "ATTACH-API-007",
-      "title": "Get attachment content placeholder succeeds",
-      "description": "Verify current API returns content placeholder metadata.",
+      "title": "Get attachment content succeeds",
+      "description": "Verify current API streams the stored attachment bytes.",
       "severity": "Medium",
       "precondition": [
         "User is authenticated.",
-        "An attachment exists."
+        "An attachment exists.",
+        "The attachment storage_key points to a physical file."
       ],
       "requestMessage": {
         "method": "GET",
@@ -202,7 +208,8 @@
       "expectedResponse": {
         "statusCode": 200,
         "checks": [
-          "Response returns placeholder content or file metadata."
+          "Response bytes match the uploaded attachment.",
+          "Content-Disposition is an attachment download."
         ]
       },
       "dbExpectation": []
@@ -235,9 +242,9 @@
     },
     {
       "caseId": "ATTACH-API-009",
-      "title": "Upload attachment handles empty body",
-      "description": "Verify attachment upload does not crash on empty JSON and follows current default behavior.",
-      "severity": "Medium",
+      "title": "Upload attachment rejects empty body",
+      "description": "Verify attachment upload requires filename and file content.",
+      "severity": "High",
       "precondition": [
         "User is authenticated.",
         "A defect exists."
@@ -252,20 +259,20 @@
         "body": {}
       },
       "expectedResponse": {
-        "statusCode": 201,
+        "statusCode": 400,
         "checks": [
-          "API returns JSON response.",
-          "Default filename behavior follows current implementation."
+          "Response error.code is validation_error.",
+          "Response identifies missing filename or file content."
         ]
       },
       "dbExpectation": [
-        "Attachment record may be created with default metadata per current behavior."
+        "No attachment is created."
       ]
     },
     {
       "caseId": "ATTACH-API-010",
-      "title": "Attachment list currently accepts missing bearer token",
-      "description": "Document current live proof-layer behavior where attachments can be listed without bearer token.",
+      "title": "Attachment list requires bearer token",
+      "description": "Verify attachment list is protected by bearer authentication.",
       "severity": "Critical",
       "precondition": [
         "A defect exists."
@@ -278,10 +285,9 @@
         "body": {}
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains items array.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is unauthorized."
         ]
       },
       "dbExpectation": []

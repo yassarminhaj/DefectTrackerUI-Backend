@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard | Defect Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/dt-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/dt-icon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/dt-icon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icons/dt-icon-48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/dt-icon-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">DT</span><span>Defect Tracker</span></div>
+      <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Collapse sidebar" aria-expanded="true"><span data-sidebar-toggle-icon><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></span></button>
+      <nav class="nav">
+        <a data-nav href="dashboard.html"><span class="nav-icon">&#9633;</span>Dashboard</a>
+        <a data-nav href="defect_list.html"><span class="nav-icon">&#8801;</span>Defects</a>
+        <a data-nav href="projects.html"><span class="nav-icon">&#9636;</span>Projects</a>
+        <a data-nav href="users.html"><span class="nav-icon">&#9678;</span>Users</a>
+        <a data-nav href="environments.html"><span class="nav-icon">&#9673;</span>Environments</a>
+        <a data-nav href="status_workflow.html"><span class="nav-icon">&#8596;</span>Status Workflow</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <h1>Dashboard</h1>
+      </header>
+      <section class="content">
+        <div class="grid grid-5 dashboard-kpi-grid">
+          <article class="card summary-card dashboard-kpi"><p class="summary-label">Total Defects</p><p class="summary-value" data-kpi-value="total">0</p><div class="summary-note" data-kpi-note="total">Current view</div></article>
+          <article class="card summary-card dashboard-kpi"><p class="summary-label">Open Defects</p><p class="summary-value" data-kpi-value="open">0</p><div class="summary-note" data-kpi-note="open">Needs action</div></article>
+          <article class="card summary-card dashboard-kpi"><p class="summary-label">Fixed Defects</p><p class="summary-value" data-kpi-value="fixed">0</p><div class="summary-note">Ready for retest</div></article>
+          <article class="card summary-card dashboard-kpi"><p class="summary-label">Closed Defects</p><p class="summary-value" data-kpi-value="closed">0</p><div class="summary-note" data-kpi-note="closed">Accepted by QA</div></article>
+          <article class="card summary-card dashboard-kpi"><p class="summary-label">High Priority Open</p><p class="summary-value" data-kpi-value="highOpen">0</p><div class="summary-note">P1/P2 still open</div></article>
+        </div>
+
+        <section class="card dashboard-section">
+          <div class="card-header">
+            <div>
+              <h2 class="charts-section-title">
+                <span>Charts</span>
+                <button class="chart-values-icon-toggle" type="button" data-toggle-chart-values aria-pressed="false" aria-label="Show values on charts" title="Show values on charts">
+                  <svg class="chart-values-icon chart-values-icon-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  <svg class="chart-values-icon chart-values-icon-on" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </h2>
+            </div>
+            <div class="filter-actions">
+              <select class="restore-chart-select" data-restore-report-chart hidden>
+                <option value="">Restore removed chart</option>
+              </select>
+              <button class="add-project-button" type="button" data-open-report-chart-modal><span>+</span> Add Chart</button>
+            </div>
+          </div>
+          <div class="report-chart-grid" data-report-chart-grid>
+            <article class="report-chart-card" data-chart-id="status"><div class="chart-title-row"><div><h3>Defects by Status</h3><p class="chart-meta" data-chart-meta>All defects</p></div></div><div class="canvas-wrap"><canvas></canvas></div></article>
+            <article class="report-chart-card" data-chart-id="severity"><div class="chart-title-row"><div><h3>Defects by Severity</h3><p class="chart-meta" data-chart-meta>All defects</p></div></div><div class="canvas-wrap"><canvas></canvas></div></article>
+            <article class="report-chart-card" data-chart-id="environment"><div class="chart-title-row"><div><h3>Defects by Environment</h3><p class="chart-meta" data-chart-meta>All defects</p></div></div><div class="canvas-wrap"><canvas></canvas></div></article>
+            <article class="report-chart-card half-chart" data-chart-id="releaseVersion"><div class="chart-title-row"><div><h3>Defects by Release</h3><p class="chart-meta" data-chart-meta>All defects</p></div></div><div class="canvas-wrap"><canvas></canvas></div></article>
+            <article class="report-chart-card half-chart" data-chart-id="trend"><div class="chart-title-row"><div><h3>Created Defect Trend</h3><p class="chart-meta" data-chart-meta>Monthly intake</p></div></div><div class="canvas-wrap"><canvas></canvas></div></article>
+          </div>
+        </section>
+
+        <section class="card dashboard-section dashboard-filter-panel is-collapsed">
+          <div class="card-header">
+            <div>
+              <h2>Dashboard Filters</h2>
+            </div>
+            <div class="filter-actions header-action-links dashboard-filter-actions">
+              <button class="header-action" type="button" data-toggle-dashboard-filters aria-expanded="false"><span data-filter-toggle-label>Expand</span></button>
+              <button class="header-action" type="button" data-dashboard-reset><span>Clear Filters</span></button>
+              <div class="export-split" data-export-split>
+                <button class="header-action export-split-main" type="button" data-dashboard-export data-export-mode="current"><span>Export CSV</span></button>
+                <button class="header-action export-split-caret" type="button" data-export-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Choose export mode"><span aria-hidden="true">â–¾</span></button>
+                <div class="export-split-menu" data-export-menu role="menu" hidden>
+                  <button class="export-split-menu-item" type="button" role="menuitem" data-export-mode="current">
+                    <span class="export-split-menu-label">Current view</span>
+                    <span class="export-split-menu-hint">What's on screen â€” visible columns &amp; filtered rows</span>
+                  </button>
+                  <button class="export-split-menu-item" type="button" role="menuitem" data-export-mode="all">
+                    <span class="export-split-menu-label">All columns</span>
+                    <span class="export-split-menu-hint">Every available field, including hidden ones</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-pad" data-dashboard-filter-body hidden>
+            <div class="filters dashboard-report-filters">
+              <div><label>Search</label><input type="text" data-report-filter="search" placeholder="Defect ID, title, notes"></div>
+              <div><label>Project</label><select data-report-filter="project"><option value="">All Projects</option></select></div>
+              <div><label>Environment</label><select data-report-filter="environment"><option value="">All Environments</option></select></div>
+              <div><label>Status</label><select data-report-filter="status"><option value="">All Statuses</option></select></div>
+              <div><label>Severity</label><select data-report-filter="severity"><option value="">All Severities</option></select></div>
+              <div><label>Priority</label><select data-report-filter="priority"><option value="">All Priorities</option></select></div>
+              <div><label>Assigned To</label><select data-report-filter="assignedTo"><option value="">Anyone</option></select></div>
+              <div><label>Release Version</label><select data-report-filter="releaseVersion"><option value="">All Releases</option></select></div>
+              <div><label>Created From</label><input type="date" data-report-filter="from"></div>
+              <div><label>Created To</label><input type="date" data-report-filter="to"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card dashboard-section">
+          <div class="card-header">
+            <div>
+              <h2>Defect Summary Table</h2>
+            </div>
+            <span class="muted" data-report-result-count>0 defects</span>
+          </div>
+          <div class="table-wrap">
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th data-sort-key="id">Defect ID</th>
+                  <th data-sort-key="title">Title</th>
+                  <th data-sort-key="project">Project</th>
+                  <th data-sort-key="environment">Environment</th>
+                  <th data-sort-key="severity">Severity</th>
+                  <th data-sort-key="priority">Priority</th>
+                  <th data-sort-key="status">Status</th>
+                  <th data-sort-key="assignedTo">Assigned To</th>
+                  <th data-sort-key="releaseVersion">Release Version</th>
+                  <th data-sort-key="createdBy">Created By</th>
+                  <th data-sort-key="createdDate">Created Date</th>
+                  <th data-sort-key="age">Age</th>
+                </tr>
+              </thead>
+              <tbody data-report-table-body></tbody>
+            </table>
+          </div>
+          <div class="table-pagination" data-report-pagination></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="chartBuilderModal" class="modal" aria-hidden="true" data-report-chart-modal>
+    <div class="modal-card chart-modal-card">
+      <div class="modal-title-row">
+        <h2 class="section-title">Add Chart</h2>
+      </div>
+      <div class="form-grid">
+        <div class="span-2"><label for="chartTitle">Chart Title</label><input id="chartTitle" type="text" data-report-chart-title placeholder="Example: UAT defects by status"></div>
+        <div><label for="chartType">Chart Type</label><select id="chartType" data-report-chart-type><option value="bar">Bar</option><option value="horizontal">Horizontal Bar</option><option value="stacked">Stacked Bar</option><option value="doughnut">Donut</option><option value="pie">Pie</option><option value="line">Line</option></select></div>
+        <div><label for="chartGroup">Group By</label><select id="chartGroup" data-report-chart-group><option value="status">Status</option><option value="severity">Severity</option><option value="priority">Priority</option><option value="project">Project</option><option value="environment">Environment</option><option value="assignedTo">Assigned To</option><option value="releaseVersion">Release Version</option><option value="createdMonth">Created Month</option></select></div>
+        <div data-stack-by-row hidden><label for="chartStack">Stack By</label><select id="chartStack" data-report-chart-stack><option value="severity">Severity</option><option value="status">Status</option><option value="priority">Priority</option><option value="project">Project</option><option value="environment">Environment</option><option value="assignedTo">Assigned To</option><option value="releaseVersion">Release Version</option></select></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" data-close-report-chart-modal>Cancel</button>
+        <button class="button-primary" type="button" data-save-report-chart>Add Chart</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/sample-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Projects | Defect Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/dt-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/dt-icon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/dt-icon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icons/dt-icon-48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/dt-icon-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">DT</span><span>Defect Tracker</span></div>
+      <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Collapse sidebar" aria-expanded="true"><span data-sidebar-toggle-icon><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></span></button>
+      <nav class="nav">
+        <a data-nav href="dashboard.html"><span class="nav-icon">&#9633;</span>Dashboard</a>
+        <a data-nav href="defect_list.html"><span class="nav-icon">&#8801;</span>Defects</a>
+        <a data-nav href="projects.html"><span class="nav-icon">&#9636;</span>Projects</a>
+        <a data-nav href="users.html"><span class="nav-icon">&#9678;</span>Users</a>
+        <a data-nav href="environments.html"><span class="nav-icon">&#9673;</span>Environments</a>
+        <a data-nav href="status_workflow.html"><span class="nav-icon">&#8596;</span>Status Workflow</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <h1>Projects</h1>
+      </header>
+      <section class="content">
+        <section class="card management-card">
+          <div class="card-header management-header">
+            <div>
+              <h2>Project List</h2>
+            </div>
+            <button class="add-project-button" type="button" data-add-row-trigger aria-label="Add project"><span>+</span> Add Project</button>
+          </div>
+          <div class="table-wrap">
+            <table class="management-table record-table project-table">
+              <thead>
+                <tr>
+                  <th>Project Name</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody data-project-table-body>
+                <tr class="inline-add-row" data-add-row hidden>
+                  <td><input data-project-name type="text" placeholder="Project name"></td>
+                  <td><input data-project-description type="text" placeholder="Short project description"></td>
+                  <td>
+                    <div class="table-status-toggle" data-project-status="Active" role="group" aria-label="Project status">
+                      <button class="active" type="button" data-project-add-status-option="Active">Active</button>
+                      <button type="button" data-project-add-status-option="Inactive">Inactive</button>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="button-primary" type="button" data-save-project>Save</button>
+                      <button type="button" data-cancel-project>Cancel</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr><td>Claims Portal</td><td>Customer claim intake and processing workflow.</td><td><span class="badge badge-active">Active</span></td><td><button type="button" data-edit-project>Edit</button></td></tr>
+                <tr><td>Billing Core</td><td>Invoice, tax, and payment calculation services.</td><td><span class="badge badge-active">Active</span></td><td><button type="button" data-edit-project>Edit</button></td></tr>
+                <tr><td>Mobile QA</td><td>Mobile application regression and release testing.</td><td><span class="badge badge-active">Active</span></td><td><button type="button" data-edit-project>Edit</button></td></tr>
+                <tr><td>Legacy CRM</td><td>Legacy support and controlled maintenance.</td><td><span class="badge badge-inactive">Inactive</span></td><td><button type="button" data-edit-project>Edit</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+  <script src="js/sample-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+

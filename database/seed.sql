@@ -12,14 +12,15 @@ INSERT INTO app_users (
     is_active,
     default_data_context
 ) VALUES
-    ('10000000-0000-0000-0000-000000000001', 'QA User', 'qa.user@example.com', 'qa.user', 'phase1-placeholder-hash', true, 'Test'),
-    ('10000000-0000-0000-0000-000000000002', 'Aisha Khan', 'aisha.khan@example.com', 'aisha.khan', 'phase1-placeholder-hash', true, 'Test'),
-    ('10000000-0000-0000-0000-000000000003', 'Omar Farooq', 'omar.farooq@example.com', 'omar.farooq', 'phase1-placeholder-hash', true, 'Prod'),
-    ('10000000-0000-0000-0000-000000000004', 'Sara Mathew', 'sara.mathew@example.com', 'sara.mathew', 'phase1-placeholder-hash', true, 'All')
+    ('10000000-0000-0000-0000-000000000001', 'QA User', 'qa.user@example.com', 'qa.user', 'scrypt:32768:8:1$yeXq9gLPtk0vCZDS$8c32a5a02e0a7d6e9cfb90b3b8f06b4adbc8bc8e7ae00906ef8d72846e788f15ad3c6db9067d5acc02380d854c7363d66e0f4f4fdf8affa9cb97f57297804673', true, 'Test'),
+    ('10000000-0000-0000-0000-000000000002', 'Aisha Khan', 'aisha.khan@example.com', 'aisha.khan', 'scrypt:32768:8:1$yeXq9gLPtk0vCZDS$8c32a5a02e0a7d6e9cfb90b3b8f06b4adbc8bc8e7ae00906ef8d72846e788f15ad3c6db9067d5acc02380d854c7363d66e0f4f4fdf8affa9cb97f57297804673', true, 'Test'),
+    ('10000000-0000-0000-0000-000000000003', 'Omar Farooq', 'omar.farooq@example.com', 'omar.farooq', 'scrypt:32768:8:1$yeXq9gLPtk0vCZDS$8c32a5a02e0a7d6e9cfb90b3b8f06b4adbc8bc8e7ae00906ef8d72846e788f15ad3c6db9067d5acc02380d854c7363d66e0f4f4fdf8affa9cb97f57297804673', true, 'Prod'),
+    ('10000000-0000-0000-0000-000000000004', 'Sara Mathew', 'sara.mathew@example.com', 'sara.mathew', 'scrypt:32768:8:1$yeXq9gLPtk0vCZDS$8c32a5a02e0a7d6e9cfb90b3b8f06b4adbc8bc8e7ae00906ef8d72846e788f15ad3c6db9067d5acc02380d854c7363d66e0f4f4fdf8affa9cb97f57297804673', true, 'All')
 ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     email = EXCLUDED.email,
     username = EXCLUDED.username,
+    password_hash = EXCLUDED.password_hash,
     is_active = EXCLUDED.is_active,
     default_data_context = EXCLUDED.default_data_context,
     updated_at = now();
@@ -36,7 +37,7 @@ INSERT INTO user_password_events (
         '10000000-0000-0000-0000-000000000001',
         '10000000-0000-0000-0000-000000000001',
         'reset',
-        'Initial seeded password placeholder.'
+        'Initial seeded password: Welcome123.'
     )
 ON CONFLICT (id) DO NOTHING;
 
@@ -222,6 +223,8 @@ INSERT INTO defects (
     expected_result,
     actual_result,
     fixed_in_release_id,
+    release_version,
+    release_deployment_date,
     fix_date,
     closure_date,
     created_at,
@@ -244,6 +247,8 @@ INSERT INTO defects (
         '<ol><li>Open invoice review in UAT</li><li>Recalculate tax</li><li>Refresh the payment review screen</li></ol>',
         'Invoice total remains unchanged after recalculation.',
         'Invoice total changes after refresh.',
+        null,
+        null,
         null,
         null,
         null,
@@ -270,6 +275,8 @@ INSERT INTO defects (
         null,
         null,
         null,
+        null,
+        null,
         now() - interval '4 days',
         now() - interval '4 days',
         '10000000-0000-0000-0000-000000000001'
@@ -291,6 +298,8 @@ INSERT INTO defects (
         'User sees clear session expired message.',
         'User sees generic failure message.',
         '40000000-0000-0000-0000-000000000003',
+        '2026.05-mobile',
+        '2026-05-25',
         current_date - 1,
         null,
         now() - interval '8 days',
@@ -314,6 +323,8 @@ INSERT INTO defects (
         'Each payment appears once in the export file.',
         'Several payments appear twice.',
         '40000000-0000-0000-0000-000000000001',
+        '2026.04',
+        '2026-04-21',
         current_date - 2,
         null,
         now() - interval '6 days',
@@ -339,6 +350,8 @@ INSERT INTO defects (
         null,
         null,
         null,
+        null,
+        null,
         now() - interval '9 days',
         now() - interval '3 days',
         '10000000-0000-0000-0000-000000000003'
@@ -359,6 +372,8 @@ ON CONFLICT (id) DO UPDATE SET
     expected_result = EXCLUDED.expected_result,
     actual_result = EXCLUDED.actual_result,
     fixed_in_release_id = EXCLUDED.fixed_in_release_id,
+    release_version = EXCLUDED.release_version,
+    release_deployment_date = EXCLUDED.release_deployment_date,
     fix_date = EXCLUDED.fix_date,
     closure_date = EXCLUDED.closure_date,
     updated_at = EXCLUDED.updated_at,

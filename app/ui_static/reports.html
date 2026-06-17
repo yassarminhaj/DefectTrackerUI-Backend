@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reports | Defect Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/dt-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/dt-icon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/dt-icon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icons/dt-icon-48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/dt-icon-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">DT</span><span>Defect Tracker</span></div>
+      <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Collapse sidebar" aria-expanded="true"><span data-sidebar-toggle-icon><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></span></button>
+      <nav class="nav">
+        <a data-nav href="dashboard.html"><span class="nav-icon">&#9633;</span>Dashboard</a>
+        <a data-nav href="defect_list.html"><span class="nav-icon">&#8801;</span>Defects</a>
+        <a data-nav href="projects.html"><span class="nav-icon">&#9636;</span>Projects</a>
+        <a data-nav href="users.html"><span class="nav-icon">&#9678;</span>Users</a>
+        <a data-nav href="environments.html"><span class="nav-icon">&#9673;</span>Environments</a>
+        <a data-nav href="status_workflow.html"><span class="nav-icon">&#8596;</span>Status Workflow</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <h1>Reports</h1>
+        <span class="topbar-meta">Exportable QA metrics preview</span>
+      </header>
+      <section class="content">
+        <section class="card card-pad">
+          <div class="filters">
+            <div><label>Date From</label><input type="date" value="2026-04-01" data-simple-report-filter="from"></div>
+            <div><label>Date To</label><input type="date" value="2026-04-30" data-simple-report-filter="to"></div>
+            <div><label>Project</label><select data-simple-report-filter="project"><option value="">All Projects</option></select></div>
+            <div><label>Environment</label><select data-simple-report-filter="environment"><option value="">All Environments</option></select></div>
+            <div><label>Status</label><select data-simple-report-filter="status"><option value="">All Statuses</option></select></div>
+            <div><label>Severity</label><select data-simple-report-filter="severity"><option value="">All Severities</option></select></div>
+            <div><label>Assigned To</label><select data-simple-report-filter="assignedTo"><option value="">Anyone</option></select></div>
+            <div><label>Release Version</label><select data-simple-report-filter="releaseVersion"><option value="">All Releases</option></select></div>
+          </div>
+          <button class="button-primary" type="button" data-run-simple-report>Run Report</button>
+        </section>
+
+        <div class="grid grid-3" style="margin-top:18px;">
+          <article class="card summary-card"><p class="summary-label">Average Fix Time</p><p class="summary-value" data-simple-report-metric="fixTime">0d</p><div class="summary-note">Created to fixed</div></article>
+          <article class="card summary-card"><p class="summary-label">Average Closure Time</p><p class="summary-value" data-simple-report-metric="closureTime">0d</p><div class="summary-note">Created to closed</div></article>
+          <article class="card summary-card"><p class="summary-label">Defects by Release</p><p class="summary-value" data-simple-report-metric="releaseCount">0</p><div class="summary-note">Current context</div></article>
+          <article class="card summary-card"><p class="summary-label">Defects by Environment</p><p class="summary-value" data-simple-report-metric="environmentCount">0</p><div class="summary-note">Current context</div></article>
+          <article class="card summary-card"><p class="summary-label">Defects by Assignee</p><p class="summary-value" data-simple-report-metric="assigneeCount">0</p><div class="summary-note">Highest current load</div></article>
+        </div>
+
+        <section class="card" style="margin-top:18px;">
+          <div class="card-header">
+            <h2>Report Results</h2>
+            <div class="report-actions">
+              <button>Export CSV</button>
+              <button>Export Excel</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Metric</th><th>Project</th><th>Environment</th><th>Release</th><th>Count</th><th>Average Days</th></tr></thead>
+              <tbody data-simple-report-table-body></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+  <script src="js/sample-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+

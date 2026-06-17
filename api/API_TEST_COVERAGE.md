@@ -20,19 +20,19 @@ The current playground/live API exposes 42 endpoints across 12 modules.
 
 | Module | Endpoints | Planned Phase 1 Test Cases | Coverage Intent |
 |---|---:|---:|---|
-| Auth | 6 | 12 | Login, refresh, logout, profile read/update, password change, auth failures |
+| Auth | 6 | 14 | Login, refresh, logout, profile read/update, password change, auth failures, default context |
 | Users | 4 | 12 | List/create/update/reset password, duplicate username/email, validation, actor attribution |
-| Projects | 3 | 9 | List/create/update, duplicate project name, active/inactive behavior |
-| Environments | 3 | 11 | List/create/update, inferred Test/Prod scope, duplicate environment name, invalid scope override |
+| Projects | 3 | 9 | List/create/update, auth protection, duplicate project name, active/inactive behavior |
+| Environments | 3 | 11 | List/create/update, auth protection, inferred Test/Prod scope, duplicate environment name, invalid scope override |
 | Releases | 3 | 9 | List/create/update, project linkage, duplicate release per project |
-| Workflow | 3 | 11 | Load/save workflow, transition lookup, invalid status, regenerated transitions |
-| Defects | 5 | 15 | List/create/detail/update/delete, context filtering, duplicate advisory, workflow transition validation, history |
-| Attachments | 4 | 10 | List/upload/delete/content placeholder, invalid defect, unsupported files, soft delete |
-| Inline Assets | 4 | 9 | Upload/update/delete/content placeholder, invalid dimensions, soft delete |
+| Workflow | 3 | 11 | Authenticated load/save workflow, transition lookup, invalid diagram/status, regenerated transitions |
+| Defects | 5 | 17 | List/create/detail/update/delete, context filtering, duplicate advisory, workflow transition validation, history |
+| Attachments | 4 | 10 | List/content-backed upload/delete/content streaming, invalid defect, unsupported files, missing content, soft delete |
+| Inline Assets | 4 | 9 | Content-backed upload/update/delete/content streaming, invalid dimensions, missing content, soft delete |
 | Comments | 4 | 10 | List/add/update/delete, invalid comment, soft delete, history |
 | History | 1 | 5 | Timeline read, invalid defect, event visibility after defect actions |
-| Dashboard | 2 | 8 | Summary/chart context filtering, active project filtering, query stability |
-| **Total** | **42** | **121** | Practical Phase 1 coverage, expandable later |
+| Dashboard | 2 | 8 | Authenticated summary/chart context filtering, active project filtering, query stability |
+| **Total** | **42** | **125** | Practical Phase 1 coverage, expandable later |
 
 The generated case count is the initial catalog baseline. It can be expanded later if risk, defects, or automation results justify deeper coverage.
 
@@ -103,7 +103,7 @@ At Phase 1 closure, update this section with actual counts:
 | Area | Total Scope | Automated | Manual | Not Covered | Notes |
 |---|---:|---:|---:|---:|---|
 | API endpoints | 42 | TBD | TBD | TBD | Based on generated JSON catalog and execution results |
-| API test cases | 121 generated | 121 planned for automation | TBD | 0 | Execution results will decide pass/fail and any manual carry-forward |
+| API test cases | 125 generated | 125 planned for automation | TBD | 0 | Execution results will decide pass/fail and any manual carry-forward |
 | DB tables | 14 | Logical coverage TBD | Raw DB testing TBD | TBD | DB assertions are logical in API catalog |
 | UI pages | TBD | TBD | TBD | TBD | To be updated from UI test coverage activity |
 
@@ -121,18 +121,20 @@ At Phase 1 closure, update this section with actual counts:
 
 | File | Test Cases |
 |---|---:|
-| `auth.testcases.json` | 12 |
+| `auth.testcases.json` | 14 |
 | `users.testcases.json` | 12 |
 | `projects.testcases.json` | 9 |
 | `environments.testcases.json` | 11 |
 | `releases.testcases.json` | 9 |
 | `workflow.testcases.json` | 11 |
-| `defects.testcases.json` | 15 |
+| `defects.testcases.json` | 17 |
 | `attachments.testcases.json` | 10 |
 | `inline-assets.testcases.json` | 9 |
 | `comments.testcases.json` | 10 |
 | `history.testcases.json` | 5 |
 | `dashboard.testcases.json` | 8 |
-| **Total** | **121** |
+| **Total** | **125** |
 
-Current-live security and validation gaps are documented as test cases where the proof-layer API accepts behavior that should later be hardened, such as missing bearer tokens, username-only login, empty comment text, and permissive inline asset metadata.
+Current-live validation gaps are documented as test cases where the proof-layer API accepts behavior that should later be hardened, such as empty comment text and permissive inline asset metadata.
+
+Attachment and inline-asset upload tests now assume the final-baseline rule: upload requests include base64 file content in `contentDataUrl`, the API writes the physical file first, and the database record stores the matching `storage_key`. Preview/download content endpoints remain placeholder behavior until the parked preview-download pass is picked up.

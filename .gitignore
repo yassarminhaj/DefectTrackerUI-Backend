@@ -17,6 +17,8 @@ env/
 !.env.example
 instance/
 uploads/
+storage/
+tmp_uat_extract/
 *.log
 *.bak
 *.bak.*

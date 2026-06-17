@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit Defect | Defect Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/dt-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/dt-icon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/dt-icon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icons/dt-icon-48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/dt-icon-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">DT</span><span>Defect Tracker</span></div>
+      <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Collapse sidebar" aria-expanded="true"><span data-sidebar-toggle-icon><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></span></button>
+      <nav class="nav">
+        <a data-nav href="dashboard.html"><span class="nav-icon">&#9633;</span>Dashboard</a>
+        <a data-nav href="defect_list.html"><span class="nav-icon">&#8801;</span>Defects</a>
+        <a data-nav href="projects.html"><span class="nav-icon">&#9636;</span>Projects</a>
+        <a data-nav href="users.html"><span class="nav-icon">&#9678;</span>Users</a>
+        <a data-nav href="environments.html"><span class="nav-icon">&#9673;</span>Environments</a>
+        <a data-nav href="status_workflow.html"><span class="nav-icon">&#8596;</span>Status Workflow</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <h1>Edit Defect</h1>
+        <div class="topbar-actions header-action-links">
+          <a class="header-action" data-back-link href="defect_list.html"><span>&larr; Back to Defects</span></a>
+        </div>
+      </header>
+
+      <section class="content">
+        <form id="defectEditForm" data-demo-form data-form-success="Defect changes saved">
+          <section class="detail-hero">
+            <div class="detail-summary-main">
+              <div class="detail-kicker-row">
+                <div class="meta-list"><strong data-edit-detail="defectKey">DF-1042</strong><span data-edit-detail="project">Billing Core</span><span data-edit-detail="environment">UAT</span><span data-edit-detail="assignedTo">Assigned to Aisha Khan</span><span data-edit-detail="createdBy">Created by qa.user</span></div>
+                <div class="detail-badges">
+                  <span class="badge badge-progress" data-edit-badge="status">In Progress</span>
+                  <span class="badge badge-high" data-edit-badge="severity">High Severity</span>
+                  <span class="badge badge-danger" data-edit-badge="priority">P1 Priority</span>
+                </div>
+              </div>
+              <h2 class="detail-title" data-edit-detail="title">Invoice total mismatch after tax recalculation</h2>
+            </div>
+          </section>
+
+          <section class="card detail-tabs-card" data-tabs>
+            <div class="card-header detail-card-header">
+              <h2>Defect Information</h2>
+              <div class="tab-list" role="tablist" aria-label="Defect edit tabs">
+                <button class="tab-button active" type="button" data-tab-target="edit-general">General</button>
+                <button class="tab-button" type="button" data-tab-target="edit-execution">Execution Details</button>
+                <button class="tab-button" type="button" data-tab-target="edit-attachments">Attachments</button>
+                <button class="tab-button" type="button" data-tab-target="edit-release">Release</button>
+              </div>
+            </div>
+            <div class="tab-panels">
+              <div class="tab-panel active" data-tab-panel="edit-general">
+                <div class="edit-info-grid">
+                  <div class="edit-field"><label for="editDefectId">Defect ID</label><input id="editDefectId" type="text" value="DF-1042" readonly aria-readonly="true"></div>
+                  <div class="edit-field"><label for="editTitle">Title</label><input id="editTitle" type="text" value="Invoice total mismatch after tax recalculation"></div>
+                  <div class="edit-field"><label for="editProject">Project</label><select id="editProject"><option>Billing Core</option><option>Claims Portal</option><option>Mobile QA</option></select></div>
+                  <div class="edit-field"><label for="editEnvironment">Environment</label><select id="editEnvironment"><option>UAT</option><option>DEV</option><option>SIT</option><option>Pre-Prod</option><option>PROD</option></select></div>
+                  <div class="edit-field"><label for="editModule">Module</label><input id="editModule" type="text" value="Invoice Review"></div>
+                  <div class="edit-field"><label for="editStatus">Status</label><select id="editStatus"><option>In Progress</option><option>Fixed</option><option>Developer Rejected</option><option>Assigned Again</option></select></div>
+                  <div class="edit-field"><label for="editSeverity">Severity</label><select id="editSeverity"><option>High</option><option>Critical</option><option>Medium</option><option>Low</option></select></div>
+                  <div class="edit-field"><label for="editPriority">Priority</label><select id="editPriority"><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select></div>
+                  <div class="edit-field"><label for="editAssigned">Assigned To</label><select id="editAssigned"><option>Aisha Khan</option><option>Omar Salem</option><option>Leena Faris</option><option>Fahad Noor</option></select></div>
+                  <div class="edit-field"><label for="editCreatedBy">Created By</label><input id="editCreatedBy" type="text" value="qa.user" readonly aria-readonly="true"></div>
+                </div>
+                <div class="edit-field edit-description-field">
+                  <label for="editDescription">Description</label>
+                  <textarea id="editDescription">The invoice total changes after refreshing the payment review screen in UAT.</textarea>
+                </div>
+              </div>
+
+              <div class="tab-panel" data-tab-panel="edit-execution" hidden>
+                <div class="edit-field">
+                  <label for="editStepsEditor">Steps to Replicate</label>
+                  <div class="tiptap-shell" data-steps-editor-shell>
+                    <div id="editStepsEditor" class="tiptap-editor" data-steps-editor contenteditable="true" tabindex="0">
+                      <p>1. Open invoice review in UAT</p>
+                      <p>2. Recalculate tax</p>
+                      <p>3. Refresh the payment review screen</p>
+                    </div>
+                    <input id="editStepsHtml" type="hidden" name="steps_html" data-steps-html>
+                    <p class="editor-help">Type the reproduction steps here. Paste screenshots directly into this editor to place them inline with the text.</p>
+                  </div>
+                </div>
+                <div class="edit-field"><label for="editExpected">Expected Result *</label><textarea id="editExpected">Invoice total remains consistent after refresh.</textarea></div>
+                <div class="edit-field"><label for="editActual">Actual Result *</label><textarea id="editActual">Invoice total changes by SAR 12.50 after refresh.</textarea></div>
+              </div>
+
+              <div class="tab-panel" data-tab-panel="edit-attachments" hidden>
+                <div class="table-wrap">
+                  <table class="management-table attachment-table">
+                    <thead><tr><th>File</th><th>Type</th><th>Actions</th></tr></thead>
+                    <tbody data-edit-attachments>
+                      <tr><td>invoice-before-refresh.png</td><td>Image</td><td><button type="button">Download</button> <button type="button">Preview</button></td></tr>
+                      <tr><td>uat-console.log</td><td>Log</td><td><button type="button">Download</button> <button type="button">Preview</button></td></tr>
+                      <tr><td>tax-rules.json</td><td>JSON</td><td><button type="button">Download</button> <button type="button">Preview</button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="upload-box edit-upload-box">
+                  <div>
+                    <strong>Add supporting files</strong>
+                    <span>Accepted files: png, jpg, jpeg, pdf, doc, docx, txt, log, json</span><br>
+                    <span>Max 10 files, 5 MB each</span>
+                    <input id="editAttachments" data-file-input="editSelectedFiles" type="file" multiple accept=".png,.jpg,.jpeg,.pdf,.doc,.docx,.txt,.log,.json">
+                  </div>
+                </div>
+                <ul id="editSelectedFiles" class="file-list">
+                  <li>No files selected</li>
+                </ul>
+              </div>
+
+              <div class="tab-panel" data-tab-panel="edit-release" hidden>
+                <div class="edit-info-grid release-date-grid">
+                  <div class="edit-field"><label for="editRelease">Release Version</label><input id="editRelease" type="text" value="" maxlength="80" placeholder="e.g. 2026.05.1"></div>
+                  <div class="edit-field"><label for="editDeployment">Release Deployment Date</label><input id="editDeployment" type="date" value="2026-05-10"></div>
+                  <div class="edit-field"><label for="editFixDate">Fix Date</label><input id="editFixDate" type="date"></div>
+                  <div class="edit-field"><label for="editClosureDate">Closure Date</label><input id="editClosureDate" type="date"></div>
+                </div>
+                <p class="release-source-note" data-release-source-note>Required when Status is Fixed so testers can plan validation.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="card detail-tabs-card" data-tabs>
+            <div class="card-header detail-card-header">
+              <h2>Collaboration &amp; Audit</h2>
+              <div class="tab-list" role="tablist" aria-label="Collaboration and audit tabs">
+                <button class="tab-button active" type="button" data-tab-target="edit-comments">Comments</button>
+                <button class="tab-button" type="button" data-tab-target="edit-history">History</button>
+              </div>
+            </div>
+            <div class="tab-panels">
+              <div class="tab-panel active" data-tab-panel="edit-comments">
+                <div class="comments" data-edit-comments>
+                  <div class="comment"><strong>Omar Salem</strong><p>Confirmed in SIT and UAT. The calculation endpoint returns a different tax component after refresh.</p><div class="comment-meta">2026-04-22 10:14</div></div>
+                  <div class="comment"><strong>Aisha Khan</strong><p>Investigating cached invoice summary versus recalculated values.</p><div class="comment-meta">2026-04-22 13:45</div></div>
+                  <div class="comment-entry">
+                    <textarea placeholder="Add a comment"></textarea>
+                    <button class="button-primary" type="button">Add Comment</button>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-panel" data-tab-panel="edit-history" hidden>
+                <div class="timeline" data-edit-history>
+                  <div class="timeline-item"><strong>Status changed</strong><div>Assigned to In Progress</div><div class="timeline-meta">2026-04-22 13:40 by Aisha Khan</div></div>
+                  <div class="timeline-item"><strong>Assignment changed</strong><div>Assigned to Aisha Khan</div><div class="timeline-meta">2026-04-21 16:05 by QA Lead</div></div>
+                  <div class="timeline-item"><strong>Attachment uploaded</strong><div>invoice-before-refresh.png</div><div class="timeline-meta">2026-04-21 15:52 by Omar Salem</div></div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <div class="form-actions edit-form-actions" aria-label="Edit defect actions">
+            <button class="button-primary" type="submit" form="defectEditForm">Save Changes</button>
+            <a class="button secondary-action-button" data-cancel-defect-link href="defect_detail.html?id=DF-1042&amp;back=defect_list.html">Cancel</a>
+            <span class="muted" data-form-message></span>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <div id="previewModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h2 class="section-title">Image Preview</h2>
+      <div class="modal-preview">Preview is available for image files.</div>
+      <button data-close-modal>Close</button>
+    </div>
+  </div>
+  <script src="js/sample-data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/steps-editor.js?v=20260608-3"></script>
+</body>
+</html>
+

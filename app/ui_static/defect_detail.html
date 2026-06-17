@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Defect Detail | Defect Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/dt-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/dt-icon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/dt-icon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icons/dt-icon-48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/dt-icon-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">DT</span><span>Defect Tracker</span></div>
+      <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Collapse sidebar" aria-expanded="true"><span data-sidebar-toggle-icon><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></span></button>
+      <nav class="nav">
+        <a data-nav href="dashboard.html"><span class="nav-icon">&#9633;</span>Dashboard</a>
+        <a data-nav href="defect_list.html"><span class="nav-icon">&#8801;</span>Defects</a>
+        <a data-nav href="projects.html"><span class="nav-icon">&#9636;</span>Projects</a>
+        <a data-nav href="users.html"><span class="nav-icon">&#9678;</span>Users</a>
+        <a data-nav href="environments.html"><span class="nav-icon">&#9673;</span>Environments</a>
+        <a data-nav href="status_workflow.html"><span class="nav-icon">&#8596;</span>Status Workflow</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <h1>Defect Detail</h1>
+        <div class="topbar-actions header-action-links">
+          <a class="header-action" data-back-link href="defect_list.html"><span>&larr; Back to Defects</span></a>
+        </div>
+      </header>
+      <section class="content">
+        <section class="detail-hero">
+          <div class="detail-summary-main">
+            <div class="detail-kicker-row">
+              <div class="meta-list"><strong data-detail-field="defectKey">DF-1042</strong><span data-detail-field="project">Billing Core</span><span data-detail-field="environment">UAT</span><span data-detail-field="assignedTo">Assigned to Aisha Khan</span><span data-detail-field="createdBy">Created by qa.user</span></div>
+              <div class="detail-badges">
+                <span class="badge badge-progress" data-detail-badge="status">In Progress</span>
+                <span class="badge badge-high" data-detail-badge="severity">High Severity</span>
+                <span class="badge badge-danger" data-detail-badge="priority">P1 Priority</span>
+              </div>
+            </div>
+            <div class="detail-title-row">
+              <h2 class="detail-title" data-detail-field="title">Invoice total mismatch after tax recalculation</h2>
+              <a class="defect-edit-icon detail-title-edit" data-edit-defect-link href="defect_edit.html?id=DF-1042&amp;back=defect_list.html" title="Edit DF-1042" aria-label="Edit DF-1042" hidden><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a>
+            </div>
+          </div>
+        </section>
+
+        <section class="card detail-tabs-card" data-tabs>
+          <div class="card-header detail-card-header">
+            <h2>Defect Information</h2>
+            <div class="tab-list" role="tablist" aria-label="Defect information tabs">
+              <button class="tab-button active" type="button" data-tab-target="detail-general">General</button>
+              <button class="tab-button" type="button" data-tab-target="detail-execution">Execution Details</button>
+              <button class="tab-button" type="button" data-tab-target="detail-attachments">Attachments</button>
+              <button class="tab-button" type="button" data-tab-target="detail-release">Release</button>
+            </div>
+          </div>
+          <div class="tab-panels">
+            <div class="tab-panel active" data-tab-panel="detail-general">
+              <dl class="info-list detail-info-grid">
+                <div class="info-row"><dt class="info-label">Defect ID</dt><dd data-detail-field="generalDefectKey">DF-1042</dd></div>
+                <div class="info-row"><dt class="info-label">Project</dt><dd data-detail-field="generalProject">Billing Core</dd></div>
+                <div class="info-row"><dt class="info-label">Environment</dt><dd data-detail-field="generalEnvironment">UAT</dd></div>
+                <div class="info-row"><dt class="info-label">Module</dt><dd data-detail-field="module">Invoice Review</dd></div>
+                <div class="info-row"><dt class="info-label">Assigned To</dt><dd data-detail-field="generalAssignedTo">Aisha Khan</dd></div>
+                <div class="info-row"><dt class="info-label">Created By</dt><dd data-detail-field="generalCreatedBy">qa.user</dd></div>
+              </dl>
+              <div class="detail-description">
+                <h3>Description</h3>
+                <p data-detail-field="description">The invoice total changes after refreshing the payment review screen in UAT.</p>
+              </div>
+            </div>
+
+            <div class="tab-panel" data-tab-panel="detail-execution" hidden>
+              <dl class="info-list execution-list">
+                <div class="info-row"><dt class="info-label">Steps</dt><dd data-detail-field="steps">Open invoice review, recalculate tax, refresh payment review screen.</dd></div>
+                <div class="info-row"><dt class="info-label">Expected</dt><dd data-detail-field="expected">Invoice total remains consistent after refresh.</dd></div>
+                <div class="info-row"><dt class="info-label">Actual</dt><dd data-detail-field="actual">Invoice total changes by SAR 12.50 after refresh.</dd></div>
+              </dl>
+            </div>
+
+            <div class="tab-panel" data-tab-panel="detail-attachments" hidden>
+              <div class="table-wrap">
+                <table class="management-table attachment-table">
+                  <thead><tr><th>File</th><th>Type</th><th>Actions</th></tr></thead>
+                  <tbody data-detail-attachments>
+                    <tr><td>invoice-before-refresh.png</td><td>Image</td><td><button>Download</button> <button>Preview</button></td></tr>
+                    <tr><td>uat-console.log</td><td>Log</td><td><button>Download</button> <button>Preview</button></td></tr>
+                    <tr><td>tax-rules.json</td><td>JSON</td><td><button>Download</button> <button>Preview</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="tab-panel" data-tab-panel="detail-release" hidden>
+              <dl class="info-list detail-info-grid">
+                <div class="info-row"><dt class="info-label">Release Version</dt><dd data-detail-field="releaseVersion">2026.04</dd></div>
+                <div class="info-row"><dt class="info-label">Release Deployment Date</dt><dd data-detail-field="deploymentDate">2026-05-10</dd></div>
+                <div class="info-row"><dt class="info-label">Fix Date</dt><dd data-detail-field="fixDate">-</dd></div>
+                <div class="info-row"><dt class="info-label">Closure Date</dt><dd data-detail-field="closureDate">-</dd></div>
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        <section class="card detail-tabs-card" data-tabs>
+          <div class="card-header detail-card-header">
+            <h2>Collaboration &amp; Audit</h2>
+            <div class="tab-list" role="tablist" aria-label="Collaboration and audit tabs">
+              <button class="tab-button active" type="button" data-tab-target="detail-comments">Comments</button>
+              <button class="tab-button" type="button" data-tab-target="detail-history">History</button>
+            </div>
+          </div>
+          <div class="tab-panels">
+            <div class="tab-panel active" data-tab-panel="detail-comments">
+              <div class="comments" data-detail-comments>
+                <div class="comment"><strong>Omar Salem</strong><p>Confirmed in SIT and UAT. The calculation endpoint returns a different tax component after refresh.</p><div class="comment-meta">2026-04-22 10:14</div></div>
+                <div class="comment"><strong>Aisha Khan</strong><p>Investigating cached invoice summary versus recalculated values.</p><div class="comment-meta">2026-04-22 13:45</div></div>
+              </div>
+            </div>
+            <div class="tab-panel" data-tab-panel="detail-history" hidden>
+              <div class="timeline" data-detail-history>
+                <div class="timeline-item"><strong>Status changed</strong><div>Assigned to In Progress</div><div class="timeline-meta">2026-04-22 13:40 by Aisha Khan</div></div>
+                <div class="timeline-item"><strong>Assignment changed</strong><div>Assigned to Aisha Khan</div><div class="timeline-meta">2026-04-21 16:05 by QA Lead</div></div>
+                <div class="timeline-item"><strong>Attachment uploaded</strong><div>invoice-before-refresh.png</div><div class="timeline-meta">2026-04-21 15:52 by Omar Salem</div></div>
+                <div class="timeline-item"><strong>Comment added</strong><div>Initial triage notes added</div><div class="timeline-meta">2026-04-21 15:48 by Omar Salem</div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="previewModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h2 class="section-title">Image Preview</h2>
+      <div class="modal-preview">Preview is available for image files.</div>
+      <button data-close-modal>Close</button>
+    </div>
+  </div>
+  <script src="js/sample-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+

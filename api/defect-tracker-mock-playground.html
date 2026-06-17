@@ -300,11 +300,11 @@ const SEED_FACTORY = () => ({
     ]
   },
   defects: [
-    { id: '60000000-0000-0000-0000-000000000001', defectKey: 'DF-1042', title: 'Invoice total mismatch after tax recalculation', description: 'The invoice total changes after refreshing the payment review screen in UAT.', projectId: '20000000-0000-0000-0000-000000000002', moduleComponent: 'Invoice Review',  environmentId: '30000000-0000-0000-0000-000000000003', severityId: 3, priorityId: 4, currentStatus: 'InProgress', assignedToUserId: '10000000-0000-0000-0000-000000000002', createdByUserId: '10000000-0000-0000-0000-000000000001', stepsHtml: '<ol><li>Open invoice review in UAT</li><li>Recalculate tax</li><li>Refresh the payment review screen</li></ol>', expectedResult: 'Invoice total remains unchanged after recalculation.', actualResult: 'Invoice total changes after refresh.', fixedInReleaseId: null,                                          fixDate: null,         closureDate: null,         createdAt: '2026-05-09T08:00:00Z', updatedAt: '2026-05-13T10:00:00Z', version: 1, isDeleted: false },
-    { id: '60000000-0000-0000-0000-000000000002', defectKey: 'DF-1043', title: 'Claim attachment preview fails for PDF',          description: 'PDF attachment preview does not render in the claims evidence panel.',           projectId: '20000000-0000-0000-0000-000000000001', moduleComponent: 'Evidence Upload', environmentId: '30000000-0000-0000-0000-000000000002', severityId: 2, priorityId: 3, currentStatus: 'Assigned',   assignedToUserId: '10000000-0000-0000-0000-000000000003', createdByUserId: '10000000-0000-0000-0000-000000000001', stepsHtml: '<p>Upload a PDF in SIT and open preview.</p>',                                                                  expectedResult: 'PDF preview opens inside the evidence panel.',     actualResult: 'Preview area stays blank.',          fixedInReleaseId: null,                                          fixDate: null,         closureDate: null,         createdAt: '2026-05-10T08:00:00Z', updatedAt: '2026-05-10T08:00:00Z', version: 1, isDeleted: false },
-    { id: '60000000-0000-0000-0000-000000000003', defectKey: 'DF-1044', title: 'Mobile login returns generic failure message',    description: 'Invalid session message is not actionable in the mobile app.',                   projectId: '20000000-0000-0000-0000-000000000003', moduleComponent: 'Login',           environmentId: '30000000-0000-0000-0000-000000000004', severityId: 1, priorityId: 2, currentStatus: 'Fixed',      assignedToUserId: '10000000-0000-0000-0000-000000000004', createdByUserId: '10000000-0000-0000-0000-000000000001', stepsHtml: '<p>Open mobile app after token expiry and try to log in again.</p>',                                          expectedResult: 'User sees clear session expired message.',         actualResult: 'User sees generic failure message.', fixedInReleaseId: '40000000-0000-0000-0000-000000000003', fixDate: '2026-05-13', closureDate: null,         createdAt: '2026-05-06T08:00:00Z', updatedAt: '2026-05-13T08:00:00Z', version: 1, isDeleted: false },
-    { id: '60000000-0000-0000-0000-000000000004', defectKey: 'DF-1045', title: 'Production payment export duplicates records',    description: 'Daily export created duplicate payment records in PROD.',                        projectId: '20000000-0000-0000-0000-000000000002', moduleComponent: 'Payment Export',  environmentId: '30000000-0000-0000-0000-000000000005', severityId: 4, priorityId: 4, currentStatus: 'Test',       assignedToUserId: '10000000-0000-0000-0000-000000000002', createdByUserId: '10000000-0000-0000-0000-000000000003', stepsHtml: '<p>Run the daily payment export job in PROD.</p>',                                                             expectedResult: 'Each payment appears once in the export file.',   actualResult: 'Several payments appear twice.',     fixedInReleaseId: '40000000-0000-0000-0000-000000000001', fixDate: '2026-05-12', closureDate: null,         createdAt: '2026-05-08T08:00:00Z', updatedAt: '2026-05-12T08:00:00Z', version: 1, isDeleted: false },
-    { id: '60000000-0000-0000-0000-000000000005', defectKey: 'DF-1046', title: 'Inactive project defect should not affect dashboard', description: 'Seed record used to confirm inactive projects are excluded from operational dashboard queries.', projectId: '20000000-0000-0000-0000-000000000004', moduleComponent: 'Legacy Sync',  environmentId: '30000000-0000-0000-0000-000000000003', severityId: 3, priorityId: 3, currentStatus: 'InProgress', assignedToUserId: '10000000-0000-0000-0000-000000000003', createdByUserId: '10000000-0000-0000-0000-000000000001', stepsHtml: '<p>Legacy CRM sample record.</p>',                                                                            expectedResult: 'Dashboard excludes inactive project defects.',     actualResult: 'Inactive project record exists for testing exclusion.', fixedInReleaseId: null,                              fixDate: null,         closureDate: null,         createdAt: '2026-05-05T08:00:00Z', updatedAt: '2026-05-11T08:00:00Z', version: 1, isDeleted: false }
+    { id: '60000000-0000-0000-0000-000000000001', defectKey: 'DF-1042', title: 'Invoice total mismatch after tax recalculation', description: 'The invoice total changes after refreshing the payment review screen in UAT.', projectId: '20000000-0000-0000-0000-000000000002', moduleComponent: 'Invoice Review',  environmentId: '30000000-0000-0000-0000-000000000003', severityId: 3, priorityId: 4, currentStatus: 'InProgress', assignedToUserId: '10000000-0000-0000-0000-000000000002', createdByUserId: '10000000-0000-0000-0000-000000000001', stepsHtml: '<ol><li>Open invoice review in UAT</li><li>Recalculate tax</li><li>Refresh the payment review screen</li></ol>', expectedResult: 'Invoice total remains unchanged after recalculation.', actualResult: 'Invoice total changes after refresh.', fixedInReleaseId: null, releaseVersion: null,            releaseDeploymentDate: null,         fixDate: null,         closureDate: null,         createdAt: '2026-05-09T08:00:00Z', updatedAt: '2026-05-13T10:00:00Z', version: 1, isDeleted: false },
+    { id: '60000000-0000-0000-0000-000000000002', defectKey: 'DF-1043', title: 'Claim attachment preview fails for PDF',          description: 'PDF attachment preview does not render in the claims evidence panel.',           projectId: '20000000-0000-0000-0000-000000000001', moduleComponent: 'Evidence Upload', environmentId: '30000000-0000-0000-0000-000000000002', severityId: 2, priorityId: 3, currentStatus: 'Assigned',   assignedToUserId: '10000000-0000-0000-0000-000000000003', createdByUserId: '10000000-0000-0000-0000-000000000001', stepsHtml: '<p>Upload a PDF in SIT and open preview.</p>',                                                                  expectedResult: 'PDF preview opens inside the evidence panel.',     actualResult: 'Preview area stays blank.',          fixedInReleaseId: null, releaseVersion: null,            releaseDeploymentDate: null,         fixDate: null,         closureDate: null,         createdAt: '2026-05-10T08:00:00Z', updatedAt: '2026-05-10T08:00:00Z', version: 1, isDeleted: false },
+    { id: '60000000-0000-0000-0000-000000000003', defectKey: 'DF-1044', title: 'Mobile login returns generic failure message',    description: 'Invalid session message is not actionable in the mobile app.',                   projectId: '20000000-0000-0000-0000-000000000003', moduleComponent: 'Login',           environmentId: '30000000-0000-0000-0000-000000000004', severityId: 1, priorityId: 2, currentStatus: 'Fixed',      assignedToUserId: '10000000-0000-0000-0000-000000000004', createdByUserId: '10000000-0000-0000-0000-000000000001', stepsHtml: '<p>Open mobile app after token expiry and try to log in again.</p>',                                          expectedResult: 'User sees clear session expired message.',         actualResult: 'User sees generic failure message.', fixedInReleaseId: '40000000-0000-0000-0000-000000000003', releaseVersion: '2026.05-mobile', releaseDeploymentDate: '2026-05-25', fixDate: '2026-05-13', closureDate: null,         createdAt: '2026-05-06T08:00:00Z', updatedAt: '2026-05-13T08:00:00Z', version: 1, isDeleted: false },
+    { id: '60000000-0000-0000-0000-000000000004', defectKey: 'DF-1045', title: 'Production payment export duplicates records',    description: 'Daily export created duplicate payment records in PROD.',                        projectId: '20000000-0000-0000-0000-000000000002', moduleComponent: 'Payment Export',  environmentId: '30000000-0000-0000-0000-000000000005', severityId: 4, priorityId: 4, currentStatus: 'Test',       assignedToUserId: '10000000-0000-0000-0000-000000000002', createdByUserId: '10000000-0000-0000-0000-000000000003', stepsHtml: '<p>Run the daily payment export job in PROD.</p>',                                                             expectedResult: 'Each payment appears once in the export file.',   actualResult: 'Several payments appear twice.',     fixedInReleaseId: '40000000-0000-0000-0000-000000000001', releaseVersion: '2026.04',        releaseDeploymentDate: '2026-04-21', fixDate: '2026-05-12', closureDate: null,         createdAt: '2026-05-08T08:00:00Z', updatedAt: '2026-05-12T08:00:00Z', version: 1, isDeleted: false },
+    { id: '60000000-0000-0000-0000-000000000005', defectKey: 'DF-1046', title: 'Inactive project defect should not affect dashboard', description: 'Seed record used to confirm inactive projects are excluded from operational dashboard queries.', projectId: '20000000-0000-0000-0000-000000000004', moduleComponent: 'Legacy Sync',  environmentId: '30000000-0000-0000-0000-000000000003', severityId: 3, priorityId: 3, currentStatus: 'InProgress', assignedToUserId: '10000000-0000-0000-0000-000000000003', createdByUserId: '10000000-0000-0000-0000-000000000001', stepsHtml: '<p>Legacy CRM sample record.</p>',                                                                            expectedResult: 'Dashboard excludes inactive project defects.',     actualResult: 'Inactive project record exists for testing exclusion.', fixedInReleaseId: null, releaseVersion: null,            releaseDeploymentDate: null,         fixDate: null,         closureDate: null,         createdAt: '2026-05-05T08:00:00Z', updatedAt: '2026-05-11T08:00:00Z', version: 1, isDeleted: false }
   ],
   attachments: [
     { id: '80000000-0000-0000-0000-000000000001', defectId: '60000000-0000-0000-0000-000000000001', originalFilename: 'invoice-error.png',  storageKey: 'defects/DF-1042/attachments/invoice-error.png',  contentType: 'image/png',  fileExtension: 'png', fileSizeBytes: 340000, uploadedByUserId: '10000000-0000-0000-0000-000000000001', uploadedAt: '2026-05-10T10:00:00Z', isDeleted: false },
@@ -500,7 +500,8 @@ const SCHEMAS = {
     stepsHtml: { type: 'string', nullable: true },
     expectedResult: { type: 'string', minLength: 2, maxLength: 1500 },
     actualResult: { type: 'string', minLength: 2, maxLength: 1500 },
-    fixedInReleaseId: { type: 'uuid', nullable: true },
+    releaseVersion: { type: 'string', maxLength: 80, nullable: true },
+    releaseDeploymentDate: { type: 'date', nullable: true },
     fixDate: { type: 'date', nullable: true },
     closureDate: { type: 'date', nullable: true }
   } },
@@ -555,6 +556,9 @@ class MockProvider {
 
   /* --- internal joins --- */
   _defectSummary(d) {
+    const release = d.releaseVersion
+      ? { id: null, projectId: d.projectId, releaseVersion: d.releaseVersion, plannedDeploymentDate: d.releaseDeploymentDate || null, actualDeploymentDate: d.releaseDeploymentDate || null, isActive: true }
+      : (d.fixedInReleaseId ? findById(this.db.releases, d.fixedInReleaseId) : null);
     return {
       id: d.id, defectKey: d.defectKey, title: d.title,
       project: findById(this.db.projects, d.projectId) || null,
@@ -564,7 +568,9 @@ class MockProvider {
       currentStatus: d.currentStatus,
       assignedTo: userSummary(findById(this.db.users, d.assignedToUserId)),
       createdBy:  userSummary(findById(this.db.users, d.createdByUserId)),
-      fixedInRelease: d.fixedInReleaseId ? findById(this.db.releases, d.fixedInReleaseId) : null,
+      fixedInRelease: release,
+      releaseVersion: release?.releaseVersion || null,
+      releaseDeploymentDate: release?.actualDeploymentDate || release?.plannedDeploymentDate || null,
       fixDate: d.fixDate, closureDate: d.closureDate,
       createdAt: d.createdAt, updatedAt: d.updatedAt
     };
@@ -834,6 +840,7 @@ class MockProvider {
         if (Q.priorityId)       items = items.filter(d => Number(d.priorityId) === Number(Q.priorityId));
         if (Q.assignedToUserId) items = items.filter(d => d.assignedToUserId === Q.assignedToUserId);
         if (Q.releaseId)        items = items.filter(d => d.fixedInReleaseId === Q.releaseId);
+        if (Q.releaseVersion)   items = items.filter(d => String(d.releaseVersion || '').toLowerCase() === String(Q.releaseVersion).toLowerCase());
         items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         const summaries = items.map(d => this._defectSummary(d));
         const p = paginate(summaries, Q.page, Q.pageSize);
@@ -881,7 +888,7 @@ class MockProvider {
           currentStatus: initialStatus, assignedToUserId: B.assignedToUserId,
           createdByUserId: db.users[0].id,
           stepsHtml: B.stepsHtml || null, expectedResult: B.expectedResult, actualResult: B.actualResult,
-          fixedInReleaseId: null, fixDate: null, closureDate: null,
+          fixedInReleaseId: null, releaseVersion: null, releaseDeploymentDate: null, fixDate: null, closureDate: null,
           createdAt: nowIso(), updatedAt: nowIso(), version: 1, isDeleted: false
         };
         db.defects.push(d);
@@ -904,7 +911,7 @@ class MockProvider {
         const batch = uuid();
         const fieldsToHistory = {
           currentStatus: 'status_changed', assignedToUserId: 'assignment_changed',
-          severityId: 'severity_changed', priorityId: 'priority_changed', fixedInReleaseId: 'release_updated'
+          severityId: 'severity_changed', priorityId: 'priority_changed', fixedInReleaseId: 'release_updated', releaseVersion: 'release_updated', releaseDeploymentDate: 'release_updated'
         };
         Object.keys(B).forEach(k => {
           if (B[k] === undefined) return;
@@ -959,7 +966,7 @@ class MockProvider {
       case 'getAttachmentContent': {
         const a = findById(db.attachments, P.attachmentId);
         if (!a || a.isDeleted) return this._err(404, 'not_found', 'Attachment not found');
-        return { status: 200, headers: { 'content-type': a.contentType, 'content-length': String(a.fileSizeBytes) }, body: `[binary content placeholder] file=${a.originalFilename} size=${a.fileSizeBytes}B type=${a.contentType}` };
+        return { status: 200, headers: { 'content-type': a.contentType, 'content-length': String(a.fileSizeBytes) }, body: `[simulated binary content] file=${a.originalFilename} size=${a.fileSizeBytes}B type=${a.contentType}` };
       }
 
       /* ========================== INLINE ASSETS ========================= */
@@ -1091,7 +1098,7 @@ const OPERATIONS = [
     exampleBody: { username: 'qa.user', password: 'phase1-placeholder', dataContext: 'Test' } },
   { operationId: 'refreshToken',  method: 'POST',   path: '/auth/refresh',       tag: 'Auth', summary: 'Refresh an access token',
     exampleBody: { refreshToken: 'mock.refresh.abc123' } },
-  { operationId: 'logout',        method: 'POST',   path: '/auth/logout',        tag: 'Auth', summary: 'Logout and revoke refresh token',
+  { operationId: 'logout',        method: 'POST',   path: '/auth/logout',        tag: 'Auth', summary: 'Logout current session',
     exampleBody: { refreshToken: 'mock.refresh.abc123' } },
   { operationId: 'getCurrentUser', method: 'GET',   path: '/auth/me',            tag: 'Auth', summary: 'Get current authenticated user',
     headerParams: [{ name: 'X-Data-Context', enum: ['', 'Test', 'Prod', 'All'] }] },
@@ -1174,7 +1181,7 @@ const OPERATIONS = [
   { operationId: 'updateDefect', method: 'PATCH', path: '/defects/{defectId}', tag: 'Defects', summary: 'Update a defect',
     pathParams: [{ name: 'defectId', example: '60000000-0000-0000-0000-000000000001' }],
     headerParams: [{ name: 'X-Data-Context', enum: ['', 'Test', 'Prod', 'All'] }, { name: 'If-Match', example: 'W/"1"' }],
-    exampleBody: { currentStatus: 'Fixed', fixedInReleaseId: '40000000-0000-0000-0000-000000000001', fixDate: '2026-05-14' } },
+    exampleBody: { currentStatus: 'Fixed', releaseVersion: '2026.05.1', releaseDeploymentDate: '2026-05-25', fixDate: '2026-05-14' } },
   { operationId: 'deleteDefect', method: 'DELETE', path: '/defects/{defectId}', tag: 'Defects', summary: 'Soft-delete a defect',
     pathParams: [{ name: 'defectId', example: '60000000-0000-0000-0000-000000000005' }],
     headerParams: [{ name: 'X-Data-Context', enum: ['', 'Test', 'Prod', 'All'] }, { name: 'If-Match', example: 'W/"1"' }] },

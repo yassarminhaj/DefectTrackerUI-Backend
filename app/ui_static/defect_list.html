@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Defects | Defect Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/dt-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/dt-icon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/dt-icon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icons/dt-icon-48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/dt-icon-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">DT</span><span>Defect Tracker</span></div>
+      <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Collapse sidebar" aria-expanded="true"><span data-sidebar-toggle-icon><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></span></button>
+      <nav class="nav">
+        <a data-nav href="dashboard.html"><span class="nav-icon">&#9633;</span>Dashboard</a>
+        <a data-nav href="defect_list.html"><span class="nav-icon">&#8801;</span>Defects</a>
+        <a data-nav href="projects.html"><span class="nav-icon">&#9636;</span>Projects</a>
+        <a data-nav href="users.html"><span class="nav-icon">&#9678;</span>Users</a>
+        <a data-nav href="environments.html"><span class="nav-icon">&#9673;</span>Environments</a>
+        <a data-nav href="status_workflow.html"><span class="nav-icon">&#8596;</span>Status Workflow</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <h1>Defects</h1>
+        <a class="button button-primary create-defect-cta" href="defect_create.html">Create Defect</a>
+      </header>
+      <section class="content">
+        <section class="card dashboard-section dashboard-filter-panel defect-filter-panel is-collapsed">
+          <div class="card-header">
+            <div>
+              <h2>Defect Filters</h2>
+            </div>
+            <div class="filter-actions header-action-links dashboard-filter-actions">
+              <button class="header-action" type="button" data-toggle-defect-filters aria-expanded="false"><span data-defect-filter-toggle-label>Expand</span></button>
+              <button class="header-action" type="button" data-reset-defect-filters><span>Clear Filters</span></button>
+              <div class="export-split" data-export-split-defect-list>
+                <button class="header-action export-split-main" type="button" data-defect-list-export data-export-mode="current"><span>Export CSV</span></button>
+                <button class="header-action export-split-caret" type="button" data-export-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Choose export mode"><span aria-hidden="true">â–¾</span></button>
+                <div class="export-split-menu" data-export-menu role="menu" hidden>
+                  <button class="export-split-menu-item" type="button" role="menuitem" data-export-mode="current">
+                    <span class="export-split-menu-label">Current view</span>
+                    <span class="export-split-menu-hint">What's on screen â€” visible columns &amp; filtered rows</span>
+                  </button>
+                  <button class="export-split-menu-item" type="button" role="menuitem" data-export-mode="all">
+                    <span class="export-split-menu-label">All columns</span>
+                    <span class="export-split-menu-hint">Every available field, including hidden ones</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-pad" data-defect-filter-body hidden>
+            <div class="filters">
+              <div><label>Search</label><input type="text" data-defect-filter="search" placeholder="ID, title, assignee"></div>
+              <div><label>Project</label><select data-defect-filter="project"><option>All Projects</option><option>Claims Portal</option><option>Mobile QA</option><option>Billing Core</option></select></div>
+              <div><label>Environment</label><select data-defect-filter="environment"><option>All Environments</option><option>DEV</option><option>SIT</option><option>UAT</option><option>Pre-Prod</option><option>PROD</option></select></div>
+              <div><label>Status</label><select data-defect-filter="status"><option>All Statuses</option><option>New</option><option>Assigned</option><option>In Progress</option><option>Fixed</option><option>Retest</option><option>Closed</option><option>Reopened</option></select></div>
+              <div><label>Severity</label><select data-defect-filter="severity"><option>All Severities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+              <div><label>Priority</label><select data-defect-filter="priority"><option>All Priorities</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select></div>
+              <div><label>Assigned To</label><select data-defect-filter="assignedTo"><option>Anyone</option><option>Aisha Khan</option><option>Omar Salem</option><option>Leena Faris</option></select></div>
+              <div><label>Release Version</label><select data-defect-filter="releaseVersion"><option>All Releases</option><option>2026.04</option><option>2026.03</option><option>2026.02</option></select></div>
+            </div>
+            <div class="defect-filter-submit">
+              <button class="button-primary" type="button" data-apply-defect-filters>Apply Filters</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card dashboard-section">
+          <div class="card-header">
+            <h2>Defect Records</h2>
+            <span class="muted" data-defect-result-count>4 records</span>
+          </div>
+          <div class="table-wrap">
+            <table class="report-table" data-defect-list-table data-client-pagination>
+              <thead>
+                <tr>
+                  <th data-sort-key="id">Defect ID</th>
+                  <th data-sort-key="title">Title</th>
+                  <th data-sort-key="project">Project</th>
+                  <th data-sort-key="environment">Environment</th>
+                  <th data-sort-key="severity">Severity</th>
+                  <th data-sort-key="priority">Priority</th>
+                  <th data-sort-key="status">Status</th>
+                  <th data-sort-key="assignedTo">Assigned To</th>
+                  <th data-sort-key="releaseVersion">Release Version</th>
+                  <th data-sort-key="createdBy">Created By</th>
+                  <th data-sort-key="createdDate">Created Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="defect-id-cell"><span class="defect-id-cell-inner"><a class="defect-id-link" href="defect_detail.html?id=DF-1042&amp;back=defect_list.html">DF-1042</a><a class="defect-edit-icon" href="defect_edit.html?id=DF-1042&amp;back=defect_list.html" title="Edit DF-1042" aria-label="Edit DF-1042"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a></span></td>
+                  <td title="Invoice total mismatch after tax recalculation">Invoice total mismatch after tax recalculation</td>
+                  <td>Billing Core</td>
+                  <td>UAT</td>
+                  <td><span class="badge badge-high">High</span></td>
+                  <td>P1</td>
+                  <td><span class="badge badge-progress">In Progress</span></td>
+                  <td>Aisha Khan</td>
+                  <td>2026.04</td>
+                  <td>qa.user</td>
+                  <td>2026-04-21</td>
+                </tr>
+                <tr>
+                  <td class="defect-id-cell"><span class="defect-id-cell-inner"><a class="defect-id-link" href="defect_detail.html?id=DF-1037&amp;back=defect_list.html">DF-1037</a><a class="defect-edit-icon" href="defect_edit.html?id=DF-1037&amp;back=defect_list.html" title="Edit DF-1037" aria-label="Edit DF-1037"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a></span></td>
+                  <td title="Attachment preview fails for PNG screenshots">Attachment preview fails for PNG screenshots</td>
+                  <td>Claims Portal</td>
+                  <td>SIT</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td>P2</td>
+                  <td><span class="badge badge-assigned">Assigned</span></td>
+                  <td>Omar Salem</td>
+                  <td>2026.04</td>
+                  <td>qa.user</td>
+                  <td>2026-04-18</td>
+                </tr>
+                <tr>
+                  <td class="defect-id-cell"><span class="defect-id-cell-inner"><a class="defect-id-link" href="defect_detail.html?id=DF-1029&amp;back=defect_list.html">DF-1029</a><a class="defect-edit-icon" href="defect_edit.html?id=DF-1029&amp;back=defect_list.html" title="Edit DF-1029" aria-label="Edit DF-1029"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a></span></td>
+                  <td title="UAT users are logged out before timeout policy">UAT users are logged out before timeout policy</td>
+                  <td>Claims Portal</td>
+                  <td>UAT</td>
+                  <td><span class="badge badge-critical">Critical</span></td>
+                  <td>P1</td>
+                  <td><span class="badge badge-reopened">Reopened</span></td>
+                  <td>Leena Faris</td>
+                  <td>2026.03</td>
+                  <td>qa.user</td>
+                  <td>2026-04-10</td>
+                </tr>
+                <tr>
+                  <td class="defect-id-cell"><span class="defect-id-cell-inner"><a class="defect-id-link" href="defect_detail.html?id=DF-1018&amp;back=defect_list.html">DF-1018</a><a class="defect-edit-icon" href="defect_edit.html?id=DF-1018&amp;back=defect_list.html" title="Edit DF-1018" aria-label="Edit DF-1018"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a></span></td>
+                  <td title="Project filter does not persist after refresh">Project filter does not persist after refresh</td>
+                  <td>Mobile QA</td>
+                  <td>SIT</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td>P4</td>
+                  <td><span class="badge badge-closed">Closed</span></td>
+                  <td>Fahad Noor</td>
+                  <td>2026.02</td>
+                  <td>qa.user</td>
+                  <td>2026-03-05</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-pagination" data-defect-list-pagination></div>
+        </section>
+      </section>
+    </main>
+  </div>
+  <script src="js/sample-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+

@@ -63,8 +63,8 @@
     },
     {
       "caseId": "COMMENT-API-003",
-      "title": "Add comment currently accepts empty text",
-      "description": "Document current live behavior where empty comment text is accepted because only database nullability is enforced.",
+      "title": "Add comment rejects empty text",
+      "description": "Verify comment creation requires readable text.",
       "severity": "High",
       "precondition": [
         "User is authenticated.",
@@ -82,15 +82,14 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 201,
+        "statusCode": 400,
         "checks": [
-          "Response contains id.",
-          "Response commentText is empty string.",
-          "This is a validation gap to harden later."
+          "Response error.code is validation_error.",
+          "Response identifies Comment as required."
         ]
       },
       "dbExpectation": [
-        "defect_comments record is created per current behavior."
+        "No comment is created."
       ]
     },
     {
@@ -113,9 +112,9 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 400,
+        "statusCode": 404,
         "checks": [
-          "Response indicates data integrity or not found."
+          "Response indicates defect not found."
         ]
       },
       "dbExpectation": [
@@ -155,8 +154,8 @@
     },
     {
       "caseId": "COMMENT-API-006",
-      "title": "Update comment currently accepts empty text",
-      "description": "Document current live behavior where comment update accepts an empty string.",
+      "title": "Update comment rejects empty text",
+      "description": "Verify comment update requires readable text.",
       "severity": "High",
       "precondition": [
         "User is authenticated.",
@@ -174,10 +173,10 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 400,
         "checks": [
-          "Response commentText is empty string.",
-          "This is a validation gap to harden later."
+          "Response error.code is validation_error.",
+          "Response identifies Comment as required."
         ]
       },
       "dbExpectation": []
@@ -267,8 +266,8 @@
     },
     {
       "caseId": "COMMENT-API-010",
-      "title": "Comments list currently accepts missing bearer token",
-      "description": "Document current live proof-layer behavior where comments can be listed without bearer token.",
+      "title": "Comments list requires bearer token",
+      "description": "Verify comments list is protected by bearer authentication.",
       "severity": "Critical",
       "precondition": [
         "A defect exists."
@@ -281,10 +280,9 @@
         "body": {}
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains items array.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is unauthorized."
         ]
       },
       "dbExpectation": []

@@ -170,8 +170,8 @@
     },
     {
       "caseId": "WORKFLOW-API-006",
-      "title": "Save workflow with empty diagram handled",
-      "description": "Verify malformed or empty workflow body does not crash API.",
+      "title": "Save workflow rejects empty diagram",
+      "description": "Verify empty workflow diagrams are rejected before persistence.",
       "severity": "High",
       "precondition": [
         "User is authenticated."
@@ -192,20 +192,18 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 400,
         "checks": [
-          "API returns JSON response.",
-          "No server crash occurs."
+          "Response error.code is validation_error.",
+          "No active workflow version is created."
         ]
       },
-      "dbExpectation": [
-        "Workflow behavior follows current live implementation."
-      ]
+      "dbExpectation": []
     },
     {
       "caseId": "WORKFLOW-API-007",
-      "title": "Save workflow ignores edge with missing node",
-      "description": "Verify invalid edge references do not crash workflow save.",
+      "title": "Save workflow rejects edge with missing node",
+      "description": "Verify invalid edge references cannot be saved.",
       "severity": "High",
       "precondition": [
         "User is authenticated."
@@ -242,18 +240,18 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 400,
         "checks": [
-          "API returns workflow response.",
-          "Invalid edge is not converted into active transition."
+          "Response error.code is validation_error.",
+          "Invalid edge is not converted into an active transition."
         ]
       },
       "dbExpectation": []
     },
     {
       "caseId": "WORKFLOW-API-008",
-      "title": "Workflow get currently accepts missing bearer token",
-      "description": "Document current live proof-layer behavior where workflow can be read without bearer token.",
+      "title": "Workflow get requires bearer token",
+      "description": "Verify active workflow cannot be read without authentication.",
       "severity": "Critical",
       "precondition": [],
       "requestMessage": {
@@ -264,10 +262,9 @@
         "body": {}
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains workflow details.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is unauthorized."
         ]
       },
       "dbExpectation": []
@@ -342,8 +339,8 @@
     },
     {
       "caseId": "WORKFLOW-API-011",
-      "title": "Workflow save currently accepts missing token",
-      "description": "Document current live proof-layer behavior where workflow save uses the default seeded actor if bearer token is missing.",
+      "title": "Workflow save requires bearer token",
+      "description": "Verify workflow save cannot happen without authentication.",
       "severity": "Critical",
       "precondition": [],
       "requestMessage": {
@@ -354,16 +351,25 @@
         "body": {
           "workflowName": "Unauthorized {{global.runId}}",
           "diagram": {
-            "nodes": [],
+            "nodes": [
+              {
+                "id": "n1",
+                "type": "process",
+                "label": "Assigned",
+                "position": {
+                  "x": 10,
+                  "y": 20
+                }
+              }
+            ],
             "edges": []
           }
         }
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains workflow details.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is unauthorized."
         ]
       },
       "dbExpectation": []

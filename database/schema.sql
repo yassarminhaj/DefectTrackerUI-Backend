@@ -140,6 +140,8 @@ CREATE TABLE IF NOT EXISTS defects (
     expected_result text NOT NULL,
     actual_result text NOT NULL,
     fixed_in_release_id uuid REFERENCES releases(id),
+    release_version varchar(80),
+    release_deployment_date date,
     fix_date date,
     closure_date date,
     created_at timestamptz NOT NULL DEFAULT now(),
@@ -155,6 +157,7 @@ CREATE INDEX IF NOT EXISTS defects_assigned_to_idx ON defects(assigned_to_user_i
 CREATE INDEX IF NOT EXISTS defects_created_by_idx ON defects(created_by_user_id);
 CREATE INDEX IF NOT EXISTS defects_created_at_idx ON defects(created_at);
 CREATE INDEX IF NOT EXISTS defects_fixed_in_release_idx ON defects(fixed_in_release_id);
+CREATE INDEX IF NOT EXISTS defects_release_version_idx ON defects(release_version);
 CREATE INDEX IF NOT EXISTS defects_dashboard_idx
     ON defects(project_id, environment_id, current_status, severity_id, priority_id);
 

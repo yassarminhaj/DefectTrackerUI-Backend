@@ -74,7 +74,7 @@ paths:
   /auth/logout:
     post:
       tags: [Auth]
-      summary: Logout and revoke refresh token
+      summary: Logout current session
       operationId: logout
       security:
         - bearerAuth: []
@@ -97,8 +97,6 @@ paths:
       operationId: getCurrentUser
       security:
         - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/DataContextHeader'
       responses:
         '200':
           description: Current user profile and active context
@@ -448,6 +446,74 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /lookups/severities:
+    get:
+      tags: [Lookups]
+      summary: List active severity lookup values
+      operationId: listSeverityLookups
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Severity lookup values returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, name, rank, isActive]
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        rank:
+                          type: integer
+                        colorToken:
+                          type: string
+                        isActive:
+                          type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /lookups/priorities:
+    get:
+      tags: [Lookups]
+      summary: List active priority lookup values
+      operationId: listPriorityLookups
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Priority lookup values returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, name, rank, isActive]
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        rank:
+                          type: integer
+                        isActive:
+                          type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /workflow:
     get:
       tags: [Workflow]
@@ -495,6 +561,7 @@ paths:
       parameters:
         - name: fromStatus
           in: query
+          required: true
           schema:
             type: string
       responses:
@@ -504,12 +571,20 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [items]
+                required: [currentStatus, allowedStatuses, items]
                 properties:
+                  currentStatus:
+                    type: string
+                  allowedStatuses:
+                    type: array
+                    items:
+                      type: string
                   items:
                     type: array
                     items:
                       $ref: '#/components/schemas/WorkflowTransition'
+        '400':
+          $ref: '#/components/responses/ValidationError'
 
   /defects:
     get:
@@ -554,6 +629,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DefectListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     post:
       tags: [Defects]
       summary: Create a defect
@@ -583,6 +660,8 @@ paths:
                 $ref: '#/components/schemas/DefectDetail'
         '400':
           $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '409':
           description: Possible same-project, same-title duplicate defect found. The defect was not created.
           content:
@@ -607,6 +686,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DefectDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
     patch:
@@ -708,14 +789,9 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              type: object
-              required: [file]
-              properties:
-                file:
-                  type: string
-                  format: binary
+              $ref: '#/components/schemas/AttachmentUploadRequest'
       responses:
         '201':
           description: Attachment uploaded
@@ -775,20 +851,9 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              type: object
-              required: [file]
-              properties:
-                file:
-                  type: string
-                  format: binary
-                widthPx:
-                  type: integer
-                  minimum: 1
-                heightPx:
-                  type: integer
-                  minimum: 1
+              $ref: '#/components/schemas/InlineAssetUploadRequest'
       responses:
         '201':
           description: Inline asset uploaded
@@ -968,6 +1033,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DefectHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /dashboard/summary:
     get:
@@ -995,6 +1062,40 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/DataContextHeader'
+        - $ref: '#/components/parameters/ProjectIdQuery'
+        - $ref: '#/components/parameters/EnvironmentIdQuery'
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: severityId
+          in: query
+          schema:
+            type: integer
+        - name: priorityId
+          in: query
+          schema:
+            type: integer
+        - name: assignedToUserId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: releaseId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: createdFrom
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: createdTo
+          in: query
+          schema:
+            type: string
+            format: date
       responses:
         '200':
           description: Dashboard chart data returned
@@ -1161,6 +1262,7 @@ components:
           minLength: 8
           maxLength: 128
         dataContext:
+          description: Optional session context override. When omitted, the user's defaultDataContext is used.
           $ref: '#/components/schemas/DataContext'
 
     RefreshTokenRequest:
@@ -1197,10 +1299,12 @@ components:
 
     CurrentUserResponse:
       type: object
-      required: [user, activeDataContext, availableDataContexts]
+      required: [user, defaultDataContext, activeDataContext, availableDataContexts]
       properties:
         user:
           $ref: '#/components/schemas/UserSummary'
+        defaultDataContext:
+          $ref: '#/components/schemas/DataContext'
         activeDataContext:
           $ref: '#/components/schemas/DataContext'
         availableDataContexts:
@@ -1215,6 +1319,8 @@ components:
         email:
           type: string
           format: email
+        defaultDataContext:
+          $ref: '#/components/schemas/DataContext'
           maxLength: 255
 
     PasswordChangeRequest:
@@ -1236,8 +1342,12 @@ components:
 
     UserPasswordResetRequest:
       type: object
-      required: [newPassword, confirmPassword]
+      required: [previousPassword, newPassword, confirmPassword]
       properties:
+        previousPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
         newPassword:
           type: string
           minLength: 8
@@ -1641,9 +1751,13 @@ components:
           type: string
           minLength: 2
           maxLength: 1500
-        fixedInReleaseId:
+        releaseVersion:
           type: string
-          format: uuid
+          maxLength: 80
+          nullable: true
+        releaseDeploymentDate:
+          type: string
+          format: date
           nullable: true
         fixDate:
           type: string
@@ -1825,6 +1939,26 @@ components:
           type: string
           format: date-time
 
+    AttachmentUploadRequest:
+      type: object
+      required: [filename, contentDataUrl]
+      properties:
+        filename:
+          type: string
+          example: invoice-error.png
+        contentType:
+          type: string
+          nullable: true
+          example: image/png
+        fileSizeBytes:
+          type: integer
+          format: int64
+          nullable: true
+        contentDataUrl:
+          type: string
+          description: Base64 data URL used by the Phase 1 static UI. The backend writes the decoded content to FILE_STORAGE_ROOT before inserting the attachment row.
+          example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=
+
     DefectInlineAsset:
       type: object
       required: [id, defectId, assetKind, contentType, contentUrl, createdAt]
@@ -1859,6 +1993,33 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    InlineAssetUploadRequest:
+      type: object
+      required: [filename, contentType, contentDataUrl]
+      properties:
+        filename:
+          type: string
+          example: step-1.png
+        contentType:
+          type: string
+          enum: [image/png, image/jpeg]
+        fileSizeBytes:
+          type: integer
+          format: int64
+          nullable: true
+        widthPx:
+          type: integer
+          minimum: 1
+          nullable: true
+        heightPx:
+          type: integer
+          minimum: 1
+          nullable: true
+        contentDataUrl:
+          type: string
+          description: Base64 image data URL pasted into the Steps editor. The backend writes the decoded content to FILE_STORAGE_ROOT before inserting the inline asset row.
+          example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=
 
     InlineAssetUpdateRequest:
       type: object
@@ -1971,7 +2132,7 @@ components:
 
     DashboardSummaryResponse:
       type: object
-      required: [dataContext, totalDefects, openDefects, fixedDefects, closedDefects, reopenedDefects, criticalDefects]
+      required: [dataContext, totalDefects, openDefects, fixedDefects, closedDefects, reopenedDefects, criticalDefects, highPriorityOpenDefects]
       properties:
         dataContext:
           $ref: '#/components/schemas/DataContext'
@@ -1986,6 +2147,8 @@ components:
         reopenedDefects:
           type: integer
         criticalDefects:
+          type: integer
+        highPriorityOpenDefects:
           type: integer
 
     DashboardChartsResponse:

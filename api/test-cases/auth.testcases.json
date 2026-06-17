@@ -58,8 +58,8 @@
     },
     {
       "caseId": "AUTH-API-003",
-      "title": "Login currently accepts username without password",
-      "description": "Document current live proof-layer behavior where login validates active username but does not yet enforce password verification.",
+      "title": "Login rejects missing password",
+      "description": "Verify login requires a password for an active username.",
       "severity": "Critical",
       "precondition": [],
       "requestMessage": {
@@ -72,18 +72,18 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains accessToken.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is invalid_credentials.",
+          "No token is returned."
         ]
       },
       "dbExpectation": []
     },
     {
       "caseId": "AUTH-API-004",
-      "title": "Login currently accepts username with wrong password",
-      "description": "Document current live proof-layer behavior where password value is not yet verified.",
+      "title": "Login rejects wrong password",
+      "description": "Verify login validates the password for an active username.",
       "severity": "Critical",
       "precondition": [],
       "requestMessage": {
@@ -97,10 +97,10 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains accessToken.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is invalid_credentials.",
+          "No token is returned."
         ]
       },
       "dbExpectation": []
@@ -133,8 +133,8 @@
     },
     {
       "caseId": "AUTH-API-006",
-      "title": "Refresh token currently accepts empty token",
-      "description": "Document current live behavior where refresh issues a token even when refreshToken is omitted.",
+      "title": "Refresh token rejects empty token",
+      "description": "Verify refresh endpoint rejects requests without a refresh token.",
       "severity": "High",
       "precondition": [],
       "requestMessage": {
@@ -145,10 +145,10 @@
         "body": {}
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains accessToken.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is invalid_refresh_token.",
+          "No token is returned."
         ]
       },
       "dbExpectation": []
@@ -181,8 +181,8 @@
     },
     {
       "caseId": "AUTH-API-008",
-      "title": "Current user without token returns default user",
-      "description": "Document current live proof-layer behavior where missing bearer token falls back to the default seeded user.",
+      "title": "Current user without token is rejected",
+      "description": "Verify current user endpoint requires a bearer token.",
       "severity": "Critical",
       "precondition": [],
       "requestMessage": {
@@ -193,10 +193,10 @@
         "body": {}
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains user id.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is unauthorized.",
+          "No user profile is returned."
         ]
       },
       "dbExpectation": []
@@ -320,6 +320,65 @@
       },
       "dbExpectation": [
         "Password is not changed."
+      ]
+    },
+    {
+      "caseId": "AUTH-API-013",
+      "title": "Login without context uses user default",
+      "description": "Verify login uses app_users.default_data_context when dataContext is omitted.",
+      "severity": "High",
+      "precondition": [
+        "A seeded or disposable user exists with defaultDataContext set to Prod or All."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "headers": {},
+        "query": {},
+        "body": {
+          "username": "{{secrets.contextUsername}}",
+          "password": "{{secrets.contextPassword}}"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response activeDataContext matches app_users.default_data_context.",
+          "Response user.defaultDataContext matches app_users.default_data_context."
+        ]
+      },
+      "dbExpectation": [
+        "app_users.default_data_context is not modified by login."
+      ]
+    },
+    {
+      "caseId": "AUTH-API-014",
+      "title": "Login context overrides user default for session",
+      "description": "Verify explicit login dataContext overrides the saved user default for the returned session context.",
+      "severity": "High",
+      "precondition": [
+        "A seeded or disposable user exists with defaultDataContext different from the requested dataContext."
+      ],
+      "requestMessage": {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "headers": {},
+        "query": {},
+        "body": {
+          "username": "{{secrets.contextUsername}}",
+          "password": "{{secrets.contextPassword}}",
+          "dataContext": "All"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200,
+        "checks": [
+          "Response activeDataContext is All.",
+          "Response user.defaultDataContext still matches app_users.default_data_context."
+        ]
+      },
+      "dbExpectation": [
+        "app_users.default_data_context is not modified by login override."
       ]
     }
   ]

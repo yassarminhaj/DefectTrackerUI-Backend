@@ -5,7 +5,7 @@
     {
       "caseId": "INLINE-API-001",
       "title": "Upload inline asset succeeds",
-      "description": "Verify inline Steps image metadata can be created.",
+      "description": "Verify inline Steps image content can be created with a matching stored file.",
       "severity": "High",
       "precondition": [
         "User is authenticated.",
@@ -21,9 +21,10 @@
         "body": {
           "filename": "step-{{global.runId}}.png",
           "contentType": "image/png",
-          "fileSizeBytes": 12345,
+          "fileSizeBytes": 68,
           "widthPx": 800,
-          "heightPx": 600
+          "heightPx": 600,
+          "contentDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
         }
       },
       "expectedResponse": {
@@ -36,13 +37,14 @@
       },
       "dbExpectation": [
         "defect_inline_assets record is created.",
+        "storage_key points to a physical file.",
         "inline_asset_added history event is created."
       ]
     },
     {
       "caseId": "INLINE-API-002",
-      "title": "Upload inline asset currently accepts non-image content type",
-      "description": "Document current live behavior where inline asset upload stores supplied contentType without enforcing image-only validation.",
+      "title": "Upload inline asset rejects non-image content type",
+      "description": "Verify inline assets are limited to pasted image content.",
       "severity": "High",
       "precondition": [
         "User is authenticated.",
@@ -60,19 +62,19 @@
           "contentType": "text/plain",
           "fileSizeBytes": 100,
           "widthPx": 100,
-          "heightPx": 100
+          "heightPx": 100,
+          "contentDataUrl": "data:text/plain;base64,dGVzdA=="
         }
       },
       "expectedResponse": {
-        "statusCode": 201,
+        "statusCode": 400,
         "checks": [
-          "Response contains id.",
-          "Response contentType follows request.",
-          "This is a validation gap to harden later."
+          "Response error.code is validation_error.",
+          "Response states inline assets must be images."
         ]
       },
       "dbExpectation": [
-        "defect_inline_assets record is created per current behavior."
+        "No inline asset is created."
       ]
     },
     {
@@ -91,11 +93,12 @@
         },
         "query": {},
         "body": {
-          "filename": "step.png",
+          "filename": "step-{{global.runId}}.png",
           "contentType": "image/png",
-          "fileSizeBytes": 100,
-          "widthPx": 100,
-          "heightPx": 100
+          "fileSizeBytes": 68,
+          "widthPx": 800,
+          "heightPx": 600,
+          "contentDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
         }
       },
       "expectedResponse": {
@@ -140,8 +143,8 @@
     },
     {
       "caseId": "INLINE-API-005",
-      "title": "Update inline asset currently accepts zero width",
-      "description": "Document current live behavior where inline asset dimensions are not yet range-validated.",
+      "title": "Update inline asset rejects zero width",
+      "description": "Verify inline asset dimensions must be positive values.",
       "severity": "High",
       "precondition": [
         "User is authenticated.",
@@ -159,10 +162,9 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 400,
         "checks": [
-          "Response widthPx follows request or DB behavior.",
-          "This is a validation gap to harden later."
+          "Response error.code is validation_error."
         ]
       },
       "dbExpectation": []
@@ -224,11 +226,12 @@
     {
       "caseId": "INLINE-API-008",
       "title": "Get inline asset content succeeds",
-      "description": "Verify content placeholder can be read.",
+      "description": "Verify current API streams the stored inline image bytes.",
       "severity": "Medium",
       "precondition": [
         "User is authenticated.",
-        "An inline asset exists."
+        "An inline asset exists.",
+        "The inline storage_key points to a physical file."
       ],
       "requestMessage": {
         "method": "GET",
@@ -242,15 +245,16 @@
       "expectedResponse": {
         "statusCode": 200,
         "checks": [
-          "Response returns placeholder content or metadata."
+          "Response bytes match the uploaded image.",
+          "Content-Type remains image/png or image/jpeg."
         ]
       },
       "dbExpectation": []
     },
     {
       "caseId": "INLINE-API-009",
-      "title": "Inline asset upload currently accepts missing bearer token",
-      "description": "Document current live proof-layer behavior where inline asset upload uses default seeded actor if token is missing.",
+      "title": "Inline asset upload requires bearer token",
+      "description": "Verify inline asset upload is protected by bearer authentication.",
       "severity": "Critical",
       "precondition": [
         "A defect exists."
@@ -269,10 +273,9 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 201,
+        "statusCode": 401,
         "checks": [
-          "Response contains id.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is unauthorized."
         ]
       },
       "dbExpectation": []

@@ -192,8 +192,8 @@
     },
     {
       "caseId": "DASH-API-008",
-      "title": "Dashboard summary currently accepts missing bearer token",
-      "description": "Document current live proof-layer behavior where dashboard summary can be read without bearer token.",
+      "title": "Dashboard summary requires bearer token",
+      "description": "Verify dashboard summary cannot be read without authentication.",
       "severity": "Critical",
       "precondition": [],
       "requestMessage": {
@@ -204,10 +204,9 @@
         "body": {}
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains dashboard summary.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is unauthorized."
         ]
       },
       "dbExpectation": []

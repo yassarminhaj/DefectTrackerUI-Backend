@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login | Defect Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/dt-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/dt-icon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/dt-icon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icons/dt-icon-48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/dt-icon-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <main class="login-page">
+    <section class="login-card">
+      <span class="login-card-mark">DT</span>
+      <h1 class="login-title">Defect Tracker</h1>
+      <p class="login-subtitle">QA Defect Lifecycle Management Tool</p>
+      <form data-demo-form>
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="qa.user">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Password">
+        <div class="login-context-field">
+          <span class="login-context-label">Data Context</span>
+          <div class="login-context-toggle" data-login-context-group role="group" aria-label="Data context">
+            <button type="button" data-login-context="Test" aria-pressed="false"><strong>Test</strong><span>DEV, SIT, UAT</span></button>
+            <button type="button" data-login-context="Prod" aria-pressed="false"><strong>Prod</strong><span>PROD only</span></button>
+            <button type="button" data-login-context="All" aria-pressed="false"><strong>All</strong><span>Merged view</span></button>
+          </div>
+          <span class="login-context-hint">Uses your saved default unless changed.</span>
+        </div>
+        <button class="button button-primary u-full-width" type="submit" data-login-link>Login</button>
+        <p class="muted" data-form-message></p>
+      </form>
+    </section>
+    <p class="login-parent-brand">
+      <img src="assets/icons/improve-mark.svg" alt="" aria-hidden="true">
+      <span>Solution By © IMprove Software Labs</span>
+    </p>
+  </main>
+  <script src="js/sample-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+

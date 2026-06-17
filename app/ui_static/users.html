@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Users | Defect Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/dt-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/dt-icon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/dt-icon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icons/dt-icon-48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/dt-icon-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">DT</span><span>Defect Tracker</span></div>
+      <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Collapse sidebar" aria-expanded="true"><span data-sidebar-toggle-icon><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></span></button>
+      <nav class="nav">
+        <a data-nav href="dashboard.html"><span class="nav-icon">&#9633;</span>Dashboard</a>
+        <a data-nav href="defect_list.html"><span class="nav-icon">&#8801;</span>Defects</a>
+        <a data-nav href="projects.html"><span class="nav-icon">&#9636;</span>Projects</a>
+        <a data-nav href="users.html"><span class="nav-icon">&#9678;</span>Users</a>
+        <a data-nav href="environments.html"><span class="nav-icon">&#9673;</span>Environments</a>
+        <a data-nav href="status_workflow.html"><span class="nav-icon">&#8596;</span>Status Workflow</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <h1>Users</h1>
+      </header>
+      <section class="content">
+        <section class="card management-card users-list-card">
+          <div class="card-header management-header">
+            <div>
+              <h2>User List</h2>
+            </div>
+            <button class="add-record-button" type="button" data-open-user-modal aria-label="Add user"><span>+</span> Add User</button>
+          </div>
+            <div class="table-wrap">
+              <table class="management-table record-table users-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Username</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody data-user-table-body>
+                  <tr><td>Aisha Khan</td><td>aisha.khan@example.com</td><td>aisha.khan</td><td><span class="badge badge-active">Active</span></td><td><div class="row-actions"><button type="button" data-edit-user>Edit</button><button type="button" data-reset-user-password>Password</button></div></td></tr>
+                  <tr><td>Omar Salem</td><td>omar.salem@example.com</td><td>omar.salem</td><td><span class="badge badge-active">Active</span></td><td><div class="row-actions"><button type="button" data-edit-user>Edit</button><button type="button" data-reset-user-password>Password</button></div></td></tr>
+                  <tr><td>Leena Faris</td><td>leena.faris@example.com</td><td>leena.faris</td><td><span class="badge badge-active">Active</span></td><td><div class="row-actions"><button type="button" data-edit-user>Edit</button><button type="button" data-reset-user-password>Password</button></div></td></tr>
+                  <tr><td>Fahad Noor</td><td>fahad.noor@example.com</td><td>fahad.noor</td><td><span class="badge badge-inactive">Inactive</span></td><td><div class="row-actions"><button type="button" data-edit-user>Edit</button><button type="button" data-reset-user-password>Password</button></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+        </section>
+      </section>
+    </main>
+  </div>
+  <div class="modal user-modal" id="userModal" aria-hidden="true">
+    <div class="modal-card user-modal-card" role="dialog" aria-modal="true" aria-labelledby="userModalTitle">
+      <div class="modal-title-row">
+        <div>
+          <h2 id="userModalTitle">Add User</h2>
+          <p class="management-subtitle">Create the user and set the first password. Password is not shown after saving</p>
+        </div>
+      </div>
+      <div class="user-form-grid">
+        <div>
+          <label for="modalUserName">Name</label>
+          <input id="modalUserName" type="text" data-modal-user-name placeholder="Full name">
+        </div>
+        <div>
+          <label for="modalUserEmail">Email</label>
+          <input id="modalUserEmail" type="email" data-modal-user-email placeholder="name@example.com">
+        </div>
+        <div>
+          <label for="modalUserUsername">Username</label>
+          <input id="modalUserUsername" type="text" data-modal-user-username placeholder="username">
+        </div>
+        <div>
+          <label>Status</label>
+          <div class="table-status-toggle modal-status-toggle" data-modal-user-status data-status-value="Active" role="group" aria-label="User status">
+            <button class="active" type="button" data-modal-user-status-option="Active" data-status-option="Active" aria-pressed="true">Active</button>
+            <button type="button" data-modal-user-status-option="Inactive" data-status-option="Inactive" aria-pressed="false">Inactive</button>
+          </div>
+        </div>
+        <div>
+          <label>Default Context</label>
+          <div class="table-status-toggle modal-status-toggle" data-modal-user-context data-context-value="Test" role="group" aria-label="Default data context">
+            <button class="active" type="button" data-modal-user-context-option="Test" aria-pressed="true">Test</button>
+            <button type="button" data-modal-user-context-option="Prod" aria-pressed="false">Prod</button>
+            <button type="button" data-modal-user-context-option="All" aria-pressed="false">All</button>
+          </div>
+        </div>
+        <div>
+          <label for="modalUserPassword">Password</label>
+          <input id="modalUserPassword" type="password" data-modal-user-password autocomplete="new-password">
+        </div>
+        <div>
+          <label for="modalUserConfirmPassword">Confirm Password</label>
+          <input id="modalUserConfirmPassword" type="password" data-modal-user-confirm autocomplete="new-password">
+        </div>
+      </div>
+      <p class="modal-message" data-user-message></p>
+      <div class="modal-actions">
+        <button type="button" data-close-user-modal>Cancel</button>
+        <button class="button-primary" type="button" data-save-modal-user>Save User</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal password-modal" id="passwordModal" aria-hidden="true">
+    <div class="modal-card password-modal-card" role="dialog" aria-modal="true" aria-labelledby="passwordModalTitle">
+      <div class="modal-title-row">
+        <div>
+          <h2 id="passwordModalTitle">Reset Password</h2>
+        </div>
+      </div>
+      <div class="password-user-summary">
+        <span>User</span>
+        <strong data-password-user-label>Selected user</strong>
+      </div>
+      <div class="password-form-grid">
+        <div>
+          <label for="previousPassword">Previous Password</label>
+          <input id="previousPassword" type="password" data-password-previous autocomplete="current-password">
+        </div>
+        <div>
+          <label for="newPassword">New Password</label>
+          <input id="newPassword" type="password" data-password-new autocomplete="new-password">
+        </div>
+        <div>
+          <label for="confirmPassword">Confirm Password</label>
+          <input id="confirmPassword" type="password" data-password-confirm autocomplete="new-password">
+        </div>
+      </div>
+      <p class="modal-message" data-password-message></p>
+      <div class="modal-actions">
+        <button type="button" data-close-password-modal>Cancel</button>
+        <button class="button-primary" type="button" data-commit-password>Commit Password</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/sample-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+

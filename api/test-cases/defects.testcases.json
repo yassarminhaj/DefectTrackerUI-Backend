@@ -433,6 +433,68 @@
     },
     {
       "caseId": "DEFECT-API-014",
+      "title": "Update defect to Fixed requires release and fix date",
+      "description": "Verify fixed status cannot be saved without release/date context.",
+      "severity": "Critical",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists in InProgress status."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/defects/{{createdDefectId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "currentStatus": "Fixed"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response error.code is validation_error.",
+          "Response indicates Release Version or Fix Date is required."
+        ]
+      },
+      "dbExpectation": [
+        "Defect status remains unchanged."
+      ]
+    },
+    {
+      "caseId": "DEFECT-API-015",
+      "title": "Update defect to Closed requires closure date",
+      "description": "Verify closed status cannot be saved without closure date.",
+      "severity": "Critical",
+      "precondition": [
+        "User is authenticated.",
+        "A defect exists where Closed is an allowed next status."
+      ],
+      "requestMessage": {
+        "method": "PATCH",
+        "path": "/api/v1/defects/{{createdDefectId}}",
+        "headers": {
+          "Authorization": "Bearer {{global.accessToken}}"
+        },
+        "query": {},
+        "body": {
+          "currentStatus": "Closed"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400,
+        "checks": [
+          "Response error.code is validation_error.",
+          "Response indicates Closure Date is required."
+        ]
+      },
+      "dbExpectation": [
+        "Defect status remains unchanged."
+      ]
+    },
+    {
+      "caseId": "DEFECT-API-016",
       "title": "Delete defect soft deletes record",
       "description": "Verify delete marks defect as deleted.",
       "severity": "High",
@@ -461,9 +523,9 @@
       ]
     },
     {
-      "caseId": "DEFECT-API-015",
-      "title": "Defects list currently accepts missing bearer token",
-      "description": "Document current live proof-layer behavior where defects can be listed without bearer token.",
+      "caseId": "DEFECT-API-017",
+      "title": "Defects list requires bearer token",
+      "description": "Verify defect list is protected by bearer authentication.",
       "severity": "Critical",
       "precondition": [],
       "requestMessage": {
@@ -474,10 +536,9 @@
         "body": {}
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains items array.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is unauthorized."
         ]
       },
       "dbExpectation": []

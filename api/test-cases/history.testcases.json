@@ -83,8 +83,8 @@
     },
     {
       "caseId": "HISTORY-API-004",
-      "title": "History invalid defect returns stable response",
-      "description": "Verify missing defect history request does not crash.",
+      "title": "History invalid defect returns not found",
+      "description": "Verify missing defect history request is rejected cleanly.",
       "severity": "Medium",
       "precondition": [
         "User is authenticated."
@@ -99,18 +99,17 @@
         "body": {}
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 404,
         "checks": [
-          "API returns JSON response per current live behavior.",
-          "No server crash occurs."
+          "Response indicates defect not found."
         ]
       },
       "dbExpectation": []
     },
     {
       "caseId": "HISTORY-API-005",
-      "title": "History currently accepts missing bearer token",
-      "description": "Document current live proof-layer behavior where history can be read without bearer token.",
+      "title": "History requires bearer token",
+      "description": "Verify history read is protected by bearer authentication.",
       "severity": "Critical",
       "precondition": [
         "A defect exists."
@@ -123,10 +122,9 @@
         "body": {}
       },
       "expectedResponse": {
-        "statusCode": 200,
+        "statusCode": 401,
         "checks": [
-          "Response contains items array.",
-          "This is a known hardening gap before production auth."
+          "Response error.code is unauthorized."
         ]
       },
       "dbExpectation": []

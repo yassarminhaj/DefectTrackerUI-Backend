@@ -138,7 +138,7 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 400,
+        "statusCode": 404,
         "checks": [
           "Response indicates project not found."
         ]
@@ -230,9 +230,9 @@
         }
       },
       "expectedResponse": {
-        "statusCode": 400,
+        "statusCode": 404,
         "checks": [
-          "Response indicates projectId not found."
+          "Response indicates project not found."
         ]
       },
       "dbExpectation": []

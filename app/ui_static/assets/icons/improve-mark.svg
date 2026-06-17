@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Improve Software Labs">
+  <defs>
+    <linearGradient id="improvePurple" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#dc9bff"/>
+      <stop offset="0.48" stop-color="#7e44c7"/>
+      <stop offset="1" stop-color="#442178"/>
+    </linearGradient>
+  </defs>
+  <path d="M32 3 58 18v28L32 61 6 46V18L32 3Z" fill="url(#improvePurple)"/>
+  <path d="M32 3v58L6 46V18L32 3Z" fill="#ffffff" opacity=".18"/>
+  <path d="M58 18 32 32 32 3 58 18Z" fill="#ffffff" opacity=".16"/>
+  <path d="M6 18 32 32 6 46V18Z" fill="#0e1010" opacity=".14"/>
+  <path d="M26 19h12v30H26v-6h3V25h-3v-6Z" fill="#ffffff"/>
+  <path d="M20 25 13 32l7 7 3-4-3-3 3-3-3-4Zm24 0-3 4 3 3-3 3 3 4 7-7-7-7Z" fill="#e7d8ff" opacity=".9"/>
+</svg>

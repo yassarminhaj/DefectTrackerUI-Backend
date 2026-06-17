@@ -51,7 +51,7 @@ psql -h localhost -p 5434 -U defect_user -d defect_tracker -f database/smoke_tes
 - Test and Prod context filtering.
 - Allowed next statuses from `workflow_transitions`.
 - Terminal status behavior when no transition exists.
-- Release rollout contents through `defects.fixed_in_release_id`.
+- Phase 1 fixed-defect release details through `defects.release_version` and `defects.release_deployment_date`.
 - History grouping through `event_batch_id`.
 - Inline assets, standalone attachments, comments, and history remain separate.
 
