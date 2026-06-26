@@ -66,7 +66,7 @@
             <article class="report-chart-card" data-chart-id="severity"><div class="chart-title-row"><div><h3>Defects by Severity</h3><p class="chart-meta" data-chart-meta>All defects</p></div></div><div class="canvas-wrap"><canvas></canvas></div></article>
             <article class="report-chart-card" data-chart-id="environment"><div class="chart-title-row"><div><h3>Defects by Environment</h3><p class="chart-meta" data-chart-meta>All defects</p></div></div><div class="canvas-wrap"><canvas></canvas></div></article>
             <article class="report-chart-card half-chart" data-chart-id="releaseVersion"><div class="chart-title-row"><div><h3>Defects by Release</h3><p class="chart-meta" data-chart-meta>All defects</p></div></div><div class="canvas-wrap"><canvas></canvas></div></article>
-            <article class="report-chart-card half-chart" data-chart-id="trend"><div class="chart-title-row"><div><h3>Created Defect Trend</h3><p class="chart-meta" data-chart-meta>Monthly intake</p></div></div><div class="canvas-wrap"><canvas></canvas></div></article>
+            <article class="report-chart-card half-chart" data-chart-id="trend" data-chart-help="Shows how many defects were created each month based on Created Date. Counts follow the current dashboard context, active projects, filters, and selected KPI tile. Click a chart point to filter the table." aria-label="Created Defect Trend. Shows how many defects were created each month based on Created Date. Counts follow the current dashboard context, active projects, filters, and selected KPI tile. Click a chart point to filter the table."><div class="chart-title-row"><div><h3>Created Defect Trend</h3><p class="chart-meta" data-chart-meta>Monthly intake</p></div></div><div class="canvas-wrap"><canvas></canvas></div></article>
           </div>
         </section>
 
@@ -80,11 +80,11 @@
               <button class="header-action" type="button" data-dashboard-reset><span>Clear Filters</span></button>
               <div class="export-split" data-export-split>
                 <button class="header-action export-split-main" type="button" data-dashboard-export data-export-mode="current"><span>Export CSV</span></button>
-                <button class="header-action export-split-caret" type="button" data-export-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Choose export mode"><span aria-hidden="true">â–¾</span></button>
+                <button class="header-action export-split-caret" type="button" data-export-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Choose export mode"><span aria-hidden="true">▼</span></button>
                 <div class="export-split-menu" data-export-menu role="menu" hidden>
                   <button class="export-split-menu-item" type="button" role="menuitem" data-export-mode="current">
                     <span class="export-split-menu-label">Current view</span>
-                    <span class="export-split-menu-hint">What's on screen â€” visible columns &amp; filtered rows</span>
+                    <span class="export-split-menu-hint">What's on screen - visible columns &amp; filtered rows</span>
                   </button>
                   <button class="export-split-menu-item" type="button" role="menuitem" data-export-mode="all">
                     <span class="export-split-menu-label">All columns</span>
@@ -116,6 +116,11 @@
               <h2>Defect Summary Table</h2>
             </div>
             <span class="muted" data-report-result-count>0 defects</span>
+          </div>
+          <div class="dashboard-chart-drilldown" data-dashboard-chart-drilldown hidden>
+            <span class="dashboard-chart-drilldown-label">Chart filter</span>
+            <span data-dashboard-chart-drilldown-text></span>
+            <button type="button" data-clear-dashboard-chart-drilldown>Clear</button>
           </div>
           <div class="table-wrap">
             <table class="report-table">

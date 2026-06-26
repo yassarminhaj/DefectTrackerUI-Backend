@@ -11,6 +11,9 @@ Source of truth: Defect Edit reads and writes through authenticated API calls. S
 - Selected attachment files are submitted as Phase 1 attachment metadata through `POST /api/v1/defects/{defectId}/attachments`.
 - Add Comment uses `POST /api/v1/defects/{defectId}/comments`.
 - Edit reads and writes respect auth, active-project, and data-context rules.
+- Project is read-only on edit; the defect keeps its original project.
+- Expected Result and Actual Result show live field validation while typing, not only on submit.
+- Successful save returns the user to the detail view for the same defect.
 
 ## Manual UI Test Cases
 
@@ -25,6 +28,10 @@ Source of truth: Defect Edit reads and writes through authenticated API calls. S
 | DEFECT-EDIT-UI-007 | Add comment | Enter a comment and click Add Comment. | Comment appears and history refreshes. |
 | DEFECT-EDIT-UI-008 | Validation blocks missing required fields | Clear required fields and save. | Existing validation styling appears and no API commit happens. |
 | DEFECT-EDIT-UI-009 | Context-hidden edit rejected | Open a direct edit URL for a defect outside the selected context. | Page shows a load error or save returns not found; stale sample values are not committed. |
+| DEFECT-EDIT-UI-010 | Project is locked on edit | Open an existing defect in edit mode. | Project field is read-only and cannot be changed. |
+| DEFECT-EDIT-UI-011 | Live validation on result fields | Edit Expected Result or Actual Result and clear/type text. | Field errors clear or appear as the user types instead of waiting for Save. |
+| DEFECT-EDIT-UI-012 | Save returns to detail | Save a defect successfully. | The page confirms the save and returns to the detail view for that defect. |
+| DEFECT-EDIT-UI-013 | Steps screenshot preview control | Paste or load an inline screenshot in Steps, click its Preview control, then use zoom in/out/reset. | Screenshot opens in the preview modal without changing resize/delete behavior or saved HTML. |
 
 ## API Test Cases
 

@@ -35,10 +35,10 @@
       <section class="content">
         <form class="card card-pad" data-demo-form>
           <div class="form-grid">
-            <div class="span-2"><label for="title">Title *</label><input id="title" type="text" value="Invoice total mismatch after tax recalculation"></div>
-            <div class="span-2"><label for="description">Description *</label><textarea id="description">The invoice total changes after refreshing the payment review screen in UAT.</textarea></div>
+            <div class="span-2"><label for="title">Title *</label><input id="title" type="text" placeholder="Short summary of the defect"></div>
+            <div class="span-2"><label for="description">Description *</label><textarea id="description" placeholder="Describe what went wrong, where it happened, and any useful context."></textarea></div>
             <div><label for="project">Project *</label><select id="project"><option>Billing Core</option><option>Claims Portal</option><option>Mobile QA</option></select></div>
-            <div><label for="module">Module / Component</label><input id="module" type="text" value="Invoice Review"></div>
+            <div><label for="module">Module / Component</label><input id="module" type="text" placeholder="Module, screen, API, or component"></div>
             <div><label for="environment">Environment Identified *</label><select id="environment" data-context-environment-select></select></div>
             <div><label for="severity">Severity *</label><select id="severity"><option>Critical</option><option selected>High</option><option>Medium</option><option>Low</option></select></div>
             <div><label for="priority">Priority *</label><select id="priority"><option selected>P1</option><option>P2</option><option>P3</option><option>P4</option></select></div>
@@ -48,17 +48,13 @@
             <div class="span-2">
               <label for="stepsEditor">Steps to Replicate</label>
               <div class="tiptap-shell" data-steps-editor-shell>
-                <div id="stepsEditor" class="tiptap-editor" data-steps-editor contenteditable="true" tabindex="0">
-                  <p>1. Open invoice review in UAT</p>
-                  <p>2. Recalculate tax</p>
-                  <p>3. Refresh the payment review screen</p>
-                </div>
+                <div id="stepsEditor" class="tiptap-editor" data-steps-editor contenteditable="true" tabindex="0"></div>
                 <input id="stepsHtml" type="hidden" name="steps_html" data-steps-html>
-                <p class="editor-help">Type the reproduction steps here. Paste screenshots directly into this editor to place them inline with the text.</p>
+                <p class="editor-help">Type steps in any format. Paste screenshots directly into this editor to place them inline.</p>
               </div>
             </div>
-            <div><label for="expected">Expected Result *</label><textarea id="expected">Invoice total remains consistent after refresh.</textarea></div>
-            <div><label for="actual">Actual Result *</label><textarea id="actual">Invoice total changes by SAR 12.50 after refresh.</textarea></div>
+            <div><label for="expected">Expected Result *</label><textarea id="expected" placeholder="What should have happened?"></textarea></div>
+            <div><label for="actual">Actual Result *</label><textarea id="actual" placeholder="What actually happened?"></textarea></div>
             <div class="span-2">
               <label for="attachments">Attachments</label>
               <div class="upload-box">

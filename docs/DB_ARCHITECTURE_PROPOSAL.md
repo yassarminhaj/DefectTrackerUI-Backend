@@ -441,6 +441,8 @@ Dashboard filters/layout should be retained only for the current user session:
 
 Do not create dashboard persistence tables in Phase 1.
 
+Phase 2 can introduce per-user dashboard preference persistence so custom charts, removed charts, and chart order survive logout/login without relying on browser storage.
+
 ### Allowed Next Statuses
 
 For a defect with `current_status = X`:

@@ -19,6 +19,7 @@ Source of truth: Defect Detail reads from PostgreSQL through authenticated API c
 | DEFECT-DETAIL-UI-002 | Hero fields hydrate | Compare hero defect key, project, environment, assigned user, created by, title, and badges with the API data. | Hero values match the selected defect. |
 | DEFECT-DETAIL-UI-003 | General tab hydrates | Open `General`. | Defect ID, project, environment, module, assignee, creator, and description render from API data. |
 | DEFECT-DETAIL-UI-004 | Execution tab hydrates | Open `Execution Details`. | Steps, Expected Result, and Actual Result render from API data; steps can include stored HTML. |
+| DEFECT-DETAIL-UI-004A | Steps screenshot previews | Open `Execution Details` for a defect with an inline screenshot, click the screenshot, then use zoom in/out/reset. | Screenshot opens in the preview modal and zoom controls resize only the preview content. |
 | DEFECT-DETAIL-UI-005 | Attachments tab hydrates | Open `Attachments`. | API attachments render in the table, or the empty state appears. |
 | DEFECT-DETAIL-UI-006 | Release tab hydrates | Open `Release`. | Release version, deployment date, fix date, and closure date render from API data or `-`. |
 | DEFECT-DETAIL-UI-007 | Comments tab hydrates | Open `Comments`. | API comments render, or the empty state appears. |
@@ -43,3 +44,4 @@ Source of truth: Defect Detail reads from PostgreSQL through authenticated API c
 - Do not make the detail page mutate defect data in this pass.
 - Detail page routing must continue to accept backend UUIDs from Defect List row actions.
 - Context and active-project rules must match Defect List and Dashboard reads.
+- Inline Steps screenshots should remain readable in-page and inspectable in the modal without changing saved content.

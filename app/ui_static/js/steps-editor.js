@@ -22,6 +22,9 @@
     clone.querySelectorAll(".image-resize-handle").forEach(function (handle) {
       handle.remove();
     });
+    clone.querySelectorAll(".image-preview-handle").forEach(function (handle) {
+      handle.remove();
+    });
     clone.querySelectorAll(".resizable-image-node").forEach(function (node) {
       node.classList.remove("is-selected");
       node.removeAttribute("contenteditable");
@@ -230,6 +233,7 @@
 
     var image = wrapper.querySelector("img");
     var handle = wrapper.querySelector(".image-resize-handle");
+    var preview = wrapper.querySelector(".image-preview-handle");
     if (!image || !handle) {
       return;
     }
@@ -245,11 +249,22 @@
     }
 
     wrapper.addEventListener("pointerdown", function (event) {
-      if (event.target === handle) {
+      if (event.target === handle || event.target === preview || event.target.closest(".image-preview-handle")) {
         return;
       }
       selectImageNode(wrapper, true);
     });
+
+    if (preview && !preview._stepsPreviewBound) {
+      preview._stepsPreviewBound = true;
+      preview.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof window.openStepsScreenshotPreview === "function") {
+          window.openStepsScreenshotPreview(image.src, image.alt || "Steps screenshot");
+        }
+      });
+    }
 
     handle.addEventListener("pointerdown", function (event) {
       event.preventDefault();
@@ -280,6 +295,7 @@
     var wrapper = document.createElement("div");
     var image = document.createElement("img");
     var handle = document.createElement("span");
+    var preview = document.createElement("button");
 
     wrapper.className = "resizable-image-node";
     wrapper.contentEditable = "false";
@@ -289,8 +305,14 @@
     syncImageWidth(image, defaultImageWidth());
     handle.className = "image-resize-handle";
     handle.setAttribute("aria-hidden", "true");
+    preview.type = "button";
+    preview.className = "image-preview-handle";
+    preview.textContent = "View";
+    preview.title = "Preview screenshot";
+    preview.setAttribute("aria-label", "Preview screenshot");
 
     wrapper.appendChild(image);
+    wrapper.appendChild(preview);
     wrapper.appendChild(handle);
     bindImageResize(wrapper);
     return wrapper;
@@ -312,6 +334,16 @@
         handle.className = "image-resize-handle";
         handle.setAttribute("aria-hidden", "true");
         wrapper.appendChild(handle);
+      }
+
+      if (!wrapper.querySelector(".image-preview-handle")) {
+        var preview = document.createElement("button");
+        preview.type = "button";
+        preview.className = "image-preview-handle";
+        preview.textContent = "View";
+        preview.title = "Preview screenshot";
+        preview.setAttribute("aria-label", "Preview screenshot");
+        wrapper.insertBefore(preview, wrapper.querySelector(".image-resize-handle"));
       }
 
       image.alt = image.alt || "Pasted reproduction screenshot";

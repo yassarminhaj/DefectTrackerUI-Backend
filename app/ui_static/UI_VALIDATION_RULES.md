@@ -9,8 +9,11 @@ This file documents the Phase 1 static UI validation contract. The rules are fro
 - Inline table edits use a red field border and native tooltip text to avoid changing row height.
 - The first invalid field receives focus.
 - A compact validation summary can appear for submit blockers, especially for inline table edits where row height must remain fixed.
+- Form and modal summaries must not duplicate field-level messages when the field already shows its own inline error.
 - Committed data changes should use a centered confirmation dialog; lightweight feedback should be contextual to the section that triggered it.
 - Success messages stay short and use existing page/modal message areas.
+- Operational application fields should suppress browser cache suggestions with `autocomplete="off"` unless the field has a specific authentication/password purpose.
+- App forms use `novalidate` so browser-native validation bubbles do not compete with the branded validation pattern.
 
 ## Message Copy Contract
 

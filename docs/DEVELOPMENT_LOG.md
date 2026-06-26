@@ -121,6 +121,12 @@ This log records implementation changes made during the final UI/API/DB stitchin
 - Added `docs/module-test-specs/AUTH_USERS_MODULE_TEST_SPEC.md` to capture manual and automation-ready expected results for Auth + Users.
 - Updated the integration plan to wire Projects next, because active project persistence is a dependency for dashboard and defect read behavior.
 
+### Phase 1 Security Baseline
+
+- Enforced server-side access-token expiry for the lightweight bearer tokens already used by the app.
+- Kept logout as a client-driven session clear path for Phase 1.
+- Documented the Phase 2 token-hardening path separately so JWT and server-side revocation can be added later without changing the current Phase 1 contract.
+
 ### Step 5 Pass 1 - Projects Master Data Wiring
 
 - Protected Projects APIs with bearer authentication.
@@ -211,6 +217,8 @@ This log records implementation changes made during the final UI/API/DB stitchin
 - Wired Save Changes to `PATCH /api/v1/defects/{defectId}`.
 - Wired selected edit attachments to Phase 1 attachment metadata uploads.
 - Wired edit-page Add Comment to the comments API and refreshed comments/history after commit.
+- Kept defect save and comment save separate on the edit page; `Save Changes` updates defect fields only, while `Add Comment` persists the draft comment explicitly.
+- Removed the auto-advance from the edit-page success dialog so the user stays on the edit screen until `View Defect` is chosen.
 - Added `docs/module-test-specs/DEFECT_EDIT_MODULE_TEST_SPEC.md`.
 - Verified with disposable DB-backed data: authenticated lookups, detail load, valid patch, attachment metadata upload, comment add, history read, and context-hidden update rejection.
 
@@ -308,3 +316,65 @@ This log records implementation changes made during the final UI/API/DB stitchin
 - Added workflow `statuses`, `terminalStatuses`, and `initialStatus` to `/api/v1/workflow` so UI controls can stop deriving status options from arbitrary defect rows.
 - Updated Dashboard and Defects page status filters to use workflow labels instead of row-derived status lists.
 - Kept a narrow legacy alias layer for current seed drift such as `Testing`/`Test` and spacing differences; this is transitional until seed data and stored defect rows are cleaned.
+
+### Step 8 Pass 5 - Dashboard Chart Drilldown
+
+- Added dashboard-only chart drilldown: clicking a chart bar, slice, point, or stacked segment applies a visible table filter without mutating dashboard dropdown values.
+- Kept KPI cards and chart cards as context health views; the drilldown narrows only the Defect Summary Table and can be cleared independently.
+- Persisted the chart drilldown in the dashboard URL so source-aware detail navigation can return to the same table scope.
+- Updated the Dashboard module test spec to capture chart-click table filtering and clear behavior.
+
+### Step 8 Pass 6 - Dashboard Scope Alignment
+
+- Made dashboard charts redraw from the same active dashboard scope as the table baseline: dropdown filters plus active KPI tile.
+- Kept chart drilldown as a table-only refinement inside the current dashboard scope, avoiding stacked tile/chart click ambiguity.
+- Added automatic scroll and a short focus cue on the Defect Summary Table after a chart component is clicked.
+- Updated the Dashboard module test spec for KPI-scoped charts and chart-click table focus.
+
+### Step 8 Pass 7 - Dashboard Not Set Drilldown
+
+- Normalized chart drilldown comparisons so chart labels such as `Not set` match blank/null record values.
+- Added a Dashboard module regression case for `Not set` chart drilldowns, including Defects by Release.
+
+### Step 8 Pass 8 - Table Header Seam Cleanup
+
+- Removed accidental white hairline seams in dark table headers by switching shared tables to a separate border model with zero spacing.
+- Added defensive header-cell seam painting with the approved primary token so sortable headers remain one continuous dark band across zoom levels and horizontal scroll positions.
+
+### Step 8 Pass 9 - Attachment Preview Scope
+
+- Added PDF support to the existing attachment preview modal.
+- Kept Phase 1 preview scope intentionally narrow: images and PDFs can preview; DOC/DOCX/TXT/LOG/JSON remain download-only so the UI does not imply unsupported document rendering.
+- Constrained the attachment preview card so the browser PDF viewer fills the modal instead of overflowing outside the white container.
+- Reused the same preview modal for inline Steps screenshots on the defect detail page, added an editor-side screenshot preview control, and added image zoom controls for screenshot/image inspection.
+- Hardened detail/edit history rendering so known event types show user-readable audit text instead of raw field names, HTML, JSON, or oversized comment/image payloads.
+
+### Step 8 Pass 10 - Created Defect Trend Clarity
+
+- Kept the chart title `Created Defect Trend`.
+- Defined the chart as monthly defect intake based on each defect's Created Date / `created_at`.
+- Added chart-local hover/help text and a clearer line-point tooltip so users know it respects the current dashboard context, active projects, filters, and selected KPI tile.
+- Refined the dashboard chart-help pattern into a subtle click-to-open translucent overlay. Help no longer participates in chart layout, so opening it does not push the chart down; the shared chart configuration still generates help text for user-added charts, and the panel closes on click-away or `Escape`.
+
+### Step 8 Pass 11 - UAT Validation And Browser Suggestion Cleanup
+
+- Removed duplicate bottom-corner validation toasts for ordinary field-level validation. Field-level messages now carry the correction guidance without an extra transient message.
+- Prevented form/modal summaries from mirroring field-level errors when inline field messages are already visible.
+- Added shared red/success styling for generic form messages so API/server errors such as invalid login credentials use the same visual language as field validation.
+- Cleared stale browser custom validity when a user edits an invalid field.
+- Added a shared autocomplete policy: login keeps `username` / `current-password`, password-change controls keep `current-password` / `new-password`, and operational application fields default to `autocomplete="off"` to reduce browser cache suggestion popups.
+- Disabled native browser validation on app forms so date/range/email errors are displayed through the branded field-level validation system instead of inconsistent browser bubbles.
+- Regression-checked real DB detail pages with inline steps and image/PDF attachments, protected attachment content fetches, image/PDF previews, release/date validation, and source-aware Defects/Dashboard detail navigation.
+- Deferred dashboard chart help-copy refinement and any KPI split such as open-for-fixing/open-for-testing as a later product wording/metric decision.
+
+### Step 8 Pass 12 - Create Defect Guidance Cleanup
+
+- Replaced prefilled sample values on Create Defect with non-destructive placeholders so users can start typing without deleting example content.
+- Kept the Steps to Replicate rich editor empty on load and allowed its existing placeholder to communicate guidance.
+- Preserved validation expectations: required fields are still truly empty until the user enters data.
+
+### Step 9 Pass 2 - Dashboard Personalization Deferred To Phase 2
+
+- Kept custom dashboard charts and chart removal as current-session UI behavior for Phase 1.
+- Deferred per-user dashboard layout persistence to Phase 2 so a logged-in user's added charts, removed charts, and ordering can survive logout/login.
+- Documented the Phase 2 storage path in the architecture notes instead of introducing a new persistence table before the core app ships.

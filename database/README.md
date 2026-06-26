@@ -63,6 +63,8 @@ psql -h localhost -p 5434 -U defect_user -d defect_tracker -f database/smoke_tes
 - Current defect status is stored as text and validated through the active workflow transitions.
 - `defect_history_events` is append-only and intentionally has no `updated_at`.
 
+Phase 2 can add a user-scoped dashboard preference store so custom charts and layout changes persist after logout/login instead of living only in the browser session.
+
 ## Maintenance Utilities
 
 Use these for local development backup/restore and cleanup:

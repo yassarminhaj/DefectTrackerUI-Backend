@@ -4,6 +4,7 @@ import json
 import os
 import re
 import uuid
+import time
 from datetime import date, datetime
 from functools import wraps
 
@@ -186,10 +187,19 @@ def current_user_id():
 
 def authenticated_user_id():
     auth = request.headers.get("Authorization", "")
-    if auth.startswith("Bearer live."):
-        candidate = auth.split("Bearer live.", 1)[1].split(".", 1)[0]
-        if re.fullmatch(r"[0-9a-fA-F-]{36}", candidate):
-            return candidate
+    if not auth.startswith("Bearer live."):
+        return None
+    token = auth.split("Bearer ", 1)[1]
+    legacy_match = re.fullmatch(r"live\.([0-9a-fA-F-]{36})\.[0-9a-fA-F-]{36}", token)
+    if legacy_match:
+        return legacy_match.group(1)
+    match = re.fullmatch(r"live\.([0-9a-fA-F-]{36})\.(\d+)\.[0-9a-fA-F-]{36}", token)
+    if not match:
+        return None
+    issued_at = int(match.group(2))
+    if int(time.time()) - issued_at > 1800:
+        return None
+    return match.group(1)
     return None
 
 
@@ -860,8 +870,9 @@ def login():
         user["password_hash"] = hash_password(data.get("password"))
     execq("update app_users set last_login_at=now() where id=%(id)s", {"id": user["id"]})
     ctx = data.get("dataContext") if data.get("dataContext") in ALLOWED_CONTEXTS else user["default_data_context"]
+    issued_at = int(time.time())
     return js({
-        "accessToken": f"live.{user['id']}.{uuid.uuid4()}",
+        "accessToken": f"live.{user['id']}.{issued_at}.{uuid.uuid4()}",
         "refreshToken": f"live.refresh.{user['id']}.{uuid.uuid4()}",
         "tokenType": "Bearer",
         "expiresIn": 1800,
@@ -878,8 +889,9 @@ def refresh_token():
     u = one("select * from app_users where id=%(id)s and is_active=true", {"id": user_id})
     if not u:
         return err("invalid_refresh_token", "Refresh token is invalid or expired.", 401)
+    issued_at = int(time.time())
     return js({
-        "accessToken": f"live.{u['id']}.{uuid.uuid4()}",
+        "accessToken": f"live.{u['id']}.{issued_at}.{uuid.uuid4()}",
         "refreshToken": f"live.refresh.{u['id']}.{uuid.uuid4()}",
         "tokenType": "Bearer",
         "expiresIn": 1800,

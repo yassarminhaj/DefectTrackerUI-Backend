@@ -371,6 +371,18 @@ textarea.is-invalid,
   line-height: 1.35;
 }
 
+[data-form-message].is-error,
+.muted.is-error {
+  color: var(--sev-high);
+  font-weight: 600;
+}
+
+[data-form-message].is-success,
+.muted.is-success {
+  color: var(--status-retest);
+  font-weight: 600;
+}
+
 .record-table input.is-invalid,
 .record-table select.is-invalid {
   box-shadow: inset 0 0 0 1px var(--sev-high);
@@ -1462,6 +1474,50 @@ textarea {
   gap: 0;
 }
 
+.dashboard-chart-drilldown {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 14%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 58%, var(--surface));
+  color: var(--text);
+  font-size: 13px;
+}
+
+.dashboard-chart-drilldown[hidden] {
+  display: none;
+}
+
+.dashboard-chart-drilldown-label {
+  font-weight: 700;
+}
+
+.dashboard-chart-drilldown button {
+  min-height: 0;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.dashboard-chart-drilldown button:hover,
+.dashboard-chart-drilldown button:focus {
+  color: var(--text);
+}
+
+.dashboard-section.is-table-focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--status-assigned) 34%, transparent);
+  transition: box-shadow 180ms ease;
+}
+
 .header-action-links {
   gap: 0;
 }
@@ -1681,6 +1737,21 @@ textarea {
   font-weight: 600;
 }
 
+.chart-title-row > div:first-child {
+  min-width: 0;
+}
+
+.chart-title-row > div:first-child:has(.chart-help-trigger) {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) auto;
+  align-items: center;
+  column-gap: 7px;
+}
+
+.chart-title-row > div:first-child:has(.chart-help-trigger) .chart-meta {
+  grid-column: 1 / -1;
+}
+
 .chart-meta {
   color: var(--muted);
   font-size: 12px;
@@ -1776,6 +1847,107 @@ textarea {
   border-radius: 8px;
   background: var(--surface);
   transition: background-color 120ms ease, border-color 120ms ease, opacity 120ms ease;
+}
+
+.report-chart-card[data-chart-help] {
+  overflow: visible;
+}
+
+.chart-help-trigger {
+  display: inline-grid;
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: color-mix(in srgb, var(--primary) 62%, var(--muted));
+  opacity: 0.72;
+  transform: translateY(1px);
+}
+
+.chart-help-trigger:hover,
+.chart-help-trigger:focus {
+  border-color: color-mix(in srgb, var(--primary) 36%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 58%, transparent);
+  color: var(--text);
+  opacity: 1;
+}
+
+.report-chart-card.is-chart-help-open .chart-help-trigger {
+  border-color: color-mix(in srgb, var(--primary) 42%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
+  color: var(--text);
+  opacity: 1;
+}
+
+.chart-help-panel {
+  position: absolute;
+  top: 52px;
+  right: 14px;
+  z-index: 16;
+  width: min(330px, calc(100% - 28px));
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 38%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(7px);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.chart-help-panel[hidden] {
+  display: none;
+}
+
+.chart-help-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.chart-help-panel-head strong {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.chart-help-close {
+  display: inline-grid;
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  min-height: 26px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-size: 0;
+  line-height: 0;
+}
+
+.chart-help-close:hover,
+.chart-help-close:focus {
+  color: var(--text);
+}
+
+.chart-help-panel-copy {
+  margin: 0;
 }
 
 .report-chart-card.wide-chart {
@@ -2068,7 +2240,8 @@ textarea {
 table {
   width: 100%;
   margin: 0;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 th,
@@ -2107,7 +2280,14 @@ thead th {
   letter-spacing: 0.6px;
   text-transform: uppercase;
   border-bottom: 2px solid var(--primary-dark);
+  border-right: 0;
+  border-left: 0;
+  box-shadow: inset 1px 0 0 var(--primary), inset -1px 0 0 var(--primary);
   white-space: nowrap;
+}
+
+thead th + th {
+  box-shadow: inset 1px 0 0 var(--primary), inset -1px 0 0 var(--primary), -1px 0 0 var(--primary);
 }
 
 thead th:first-child {
@@ -2744,13 +2924,38 @@ tbody tr:hover .table-status-toggle button:not(.active) {
   transform: rotate(-45deg);
 }
 
+.image-preview-handle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: none;
+  min-height: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--primary);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 26px;
+}
+
+.image-preview-handle:hover,
+.image-preview-handle:focus {
+  background: var(--soft);
+}
+
 .resizable-image-node.is-selected {
   outline: 2px dashed var(--status-in-progress);
   outline-offset: 4px;
 }
 
 .resizable-image-node:hover .image-resize-handle,
-.resizable-image-node.is-selected .image-resize-handle {
+.resizable-image-node.is-selected .image-resize-handle,
+.resizable-image-node:hover .image-preview-handle,
+.resizable-image-node.is-selected .image-preview-handle {
   display: block;
 }
 
@@ -2936,6 +3141,12 @@ tbody tr:hover .table-status-toggle button:not(.active) {
 }
 
 .release-source-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.field-note {
   margin: 0;
   color: var(--muted);
   font-size: 13px;
@@ -3717,6 +3928,7 @@ tbody tr:hover .table-status-toggle button:not(.active) {
 
 .modal-preview {
   display: grid;
+  width: 100%;
   min-height: 280px;
   place-items: center;
   margin: 14px 0;
@@ -3726,11 +3938,84 @@ tbody tr:hover .table-status-toggle button:not(.active) {
   color: var(--muted);
 }
 
+.attachment-preview-card {
+  display: flex;
+  width: min(1180px, calc(100vw - 64px));
+  max-height: calc(100vh - 64px);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.attachment-preview-card .section-title {
+  flex: 0 0 auto;
+}
+
+.attachment-preview-card .modal-preview {
+  min-height: 360px;
+  height: min(70vh, 700px);
+  overflow: hidden;
+}
+
+.attachment-preview-card .modal-preview.is-zoomable-preview {
+  grid-template-rows: auto minmax(0, 1fr);
+  place-items: stretch;
+}
+
+.attachment-preview-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.attachment-preview-toolbar button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.attachment-preview-toolbar button:hover,
+.attachment-preview-toolbar button:focus {
+  background: var(--soft);
+}
+
+.attachment-preview-scroll {
+  display: grid;
+  min-height: 0;
+  overflow: auto;
+  place-items: start center;
+  background: var(--surface);
+}
+
+.attachment-preview-card [data-close-modal] {
+  flex: 0 0 auto;
+  align-self: flex-end;
+  margin: 0;
+}
+
 .attachment-preview-image {
   display: block;
   max-width: 100%;
   max-height: min(58vh, 560px);
+  justify-self: center;
+  align-self: center;
   object-fit: contain;
+}
+
+.attachment-preview-image.is-zoomable {
+  max-width: none;
+  max-height: none;
+  transform-origin: top center;
+}
+
+.attachment-preview-pdf {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--surface);
 }
 
 .attachment-preview-message {
@@ -3738,6 +4023,19 @@ tbody tr:hover .table-status-toggle button:not(.active) {
   margin: 0;
   text-align: center;
   color: var(--muted);
+}
+
+.detail-step-image {
+  cursor: zoom-in;
+}
+
+.detail-step-image:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.timeline-body {
+  overflow-wrap: anywhere;
 }
 
 .muted {

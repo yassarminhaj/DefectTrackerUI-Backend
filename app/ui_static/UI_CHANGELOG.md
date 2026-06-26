@@ -360,3 +360,22 @@ A living record of every UI change made during the **UI Freeze** phase. Each ent
 - `css/app.css` - added image preview fit/message styling.
 - `app.py` - decodes upload content, writes files under `FILE_STORAGE_ROOT`, and stores matching `storage_key` values.
 - `api/API_DB_MAPPING.md` - records the stricter upload contract and content-backed storage behavior.
+
+---
+
+## Detail Screenshot Preview And History Cleanup
+
+**Change:** Inline screenshots rendered in Defect Detail steps can be opened in the existing preview modal and inspected with zoom controls. Screenshots inside the create/edit Steps editor also get a dedicated preview control, keeping image selection/resize behavior separate. Detail and Edit history now share one formatter that summarizes known audit events instead of exposing raw field names, HTML, JSON, base64 image content, or oversized comment text.
+
+**Why:** Screenshots inside steps need to be inspectable without treating them as standalone attachments, and the history tab should read like an audit trail rather than a technical payload dump.
+
+**Intent:** Keep Steps as the narrative source, make screenshot inspection deliberate, and make History stable and readable across attachments, inline screenshots, comments, status changes, and release updates.
+
+**Concept:** *Detailed when inspected, quiet when scanned.*
+
+**Files touched:**
+- `js/app.js` - shared preview-modal zoom behavior, inline step screenshot preview hooks, and shared history formatter.
+- `js/steps-editor.js` - editor screenshot preview control that is stripped from saved HTML.
+- `css/app.css` - zoomable preview layout, screenshot cursor/focus styling, and defensive history wrapping.
+- `docs/module-test-specs/DEFECT_DETAIL_MODULE_TEST_SPEC.md` - screenshot preview regression case.
+- `docs/module-test-specs/COMMENTS_HISTORY_MODULE_TEST_SPEC.md` - raw-payload history regression case.

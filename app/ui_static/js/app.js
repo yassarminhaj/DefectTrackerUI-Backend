@@ -24,7 +24,8 @@
     chevronRight: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
     grip: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><circle cx="9" cy="8" r="1.8"/><circle cx="15" cy="8" r="1.8"/><circle cx="9" cy="16" r="1.8"/><circle cx="15" cy="16" r="1.8"/></svg>',
     close: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
-    resize: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 16l8-8M13 17l4-4"/></svg>'
+    resize: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 16l8-8M13 17l4-4"/></svg>',
+    info: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 10.2v5.2"/><circle cx="12" cy="7.4" r="1"/></svg>'
   };
 
   function setIconContent(element, iconMarkup) {
@@ -364,12 +365,9 @@
     if (loaderActiveCount > 0) {
       return;
     }
-    var elapsed = Date.now() - loaderStartedAt;
-    window.setTimeout(function () {
-      loader.classList.remove("is-visible");
-      window.clearInterval(loaderTimer);
-      loaderStartedAt = 0;
-    }, Math.max(0, 520 - elapsed));
+    loader.classList.remove("is-visible");
+    window.clearInterval(loaderTimer);
+    loaderStartedAt = 0;
   }
 
   window.DefectTrackerLoader = {
@@ -427,6 +425,35 @@
     return String(field.value == null ? "" : field.value).trim();
   }
 
+  function applyAutocompletePolicy(root) {
+    var scope = root || document;
+    var forms = scope.matches && scope.matches("form") ? [scope] : Array.prototype.slice.call(scope.querySelectorAll ? scope.querySelectorAll("form") : []);
+    forms.forEach(function (form) {
+      form.setAttribute("autocomplete", form.closest(".login-page") ? "on" : "off");
+      form.setAttribute("novalidate", "novalidate");
+    });
+
+    var fields = [];
+    if (scope.matches && scope.matches("input, textarea")) fields.push(scope);
+    fields = fields.concat(Array.prototype.slice.call(scope.querySelectorAll ? scope.querySelectorAll("input, textarea") : []));
+    fields.forEach(function (field) {
+      var type = String(field.getAttribute("type") || field.tagName || "").toLowerCase();
+      if (["hidden", "file", "checkbox", "radio", "button", "submit"].indexOf(type) !== -1) return;
+      if (field.hasAttribute("autocomplete")) return;
+      if (field.closest(".login-page")) {
+        if (field.id === "username") field.setAttribute("autocomplete", "username");
+        else if (field.id === "password") field.setAttribute("autocomplete", "current-password");
+        return;
+      }
+      if (type === "password") {
+        var currentPasswordField = field.matches("[data-password-previous], [data-profile-current-password]");
+        field.setAttribute("autocomplete", currentPasswordField ? "current-password" : "new-password");
+        return;
+      }
+      field.setAttribute("autocomplete", "off");
+    });
+  }
+
   function getFieldLabel(field) {
     if (!field) return "This field";
     var id = field.id;
@@ -448,6 +475,7 @@
     field.removeAttribute("aria-invalid");
     field.removeAttribute("aria-describedby");
     field.removeAttribute("title");
+    if (typeof field.setCustomValidity === "function") field.setCustomValidity("");
     if (describedBy) {
       describedBy.split(/\s+/).forEach(function (id) {
         var error = id ? document.getElementById(id) : null;
@@ -509,10 +537,12 @@
 
   function requiredField(state, field, message) {
     if (!field) return;
+    if (field.disabled) return;
     if (!fieldValue(field)) addValidationError(state, field, message || validationMessages.required(getFieldLabel(field)));
   }
 
   function maxLengthField(state, field, max, message) {
+    if (!field || field.disabled) return;
     if (fieldValue(field).length > max) addValidationError(state, field, message || validationMessages.maxLength(getFieldLabel(field), max));
   }
 
@@ -635,8 +665,8 @@
 
   function finishValidation(state, successText) {
     if (!state.ok) {
-      setValidationMessage(state.messageElement, state.messages[0] || "Fix the highlighted fields.", "error");
-      showValidationToast(state.messages[0] || "Fix the highlighted fields.");
+      var hasFieldMessages = state.scope && state.scope.querySelector && state.scope.querySelector(".field-error");
+      setValidationMessage(state.messageElement, hasFieldMessages ? "" : (state.messages[0] || "Fix the highlighted fields."), hasFieldMessages ? "" : "error");
       revealValidationField(state.first);
       if (state.first && typeof state.first.focus === "function") state.first.focus();
       return false;
@@ -653,15 +683,48 @@
       : target.closest("input, select, textarea, [contenteditable='true']");
     if (!field || !field.classList.contains("is-invalid")) return;
     clearFieldError(field);
-    var form = field.closest("form");
-    if (form) {
-      var nextError = form.querySelector(".field-error");
-      setValidationMessage(form.querySelector("[data-form-message]"), nextError ? nextError.textContent : "", nextError ? "error" : "");
+    var summaryRoot = field.closest("form, .modal-card");
+    if (summaryRoot) {
+      var summary = summaryRoot.querySelector("[data-form-message], [data-profile-message], [data-user-message], [data-password-message]");
+      setValidationMessage(summary, "", "");
     }
   }
 
   document.addEventListener("input", clearEditedFieldValidation, true);
   document.addEventListener("change", clearEditedFieldValidation, true);
+
+  function validateLiveTextArea(field, maxLength) {
+    if (!field) return;
+    if (field.disabled) {
+      clearFieldError(field);
+      return;
+    }
+    var value = fieldValue(field);
+    if (!value) {
+      setFieldError(field, validationMessages.required(getFieldLabel(field)));
+      return;
+    }
+    if (maxLength && value.length > maxLength) {
+      setFieldError(field, validationMessages.maxLength(getFieldLabel(field), maxLength));
+      return;
+    }
+    clearFieldError(field);
+  }
+
+  function setupLiveResultValidation() {
+    ["#expected", "#actual", "#editExpected", "#editActual"].forEach(function (selector) {
+      var field = document.querySelector(selector);
+      if (!field) return;
+      var max = selector.indexOf("actual") !== -1 || selector.indexOf("expected") !== -1 ? 1500 : 1500;
+      var handler = function () {
+        validateLiveTextArea(field, max);
+      };
+      field.addEventListener("input", handler);
+      field.addEventListener("blur", handler);
+    });
+  }
+
+  setupLiveResultValidation();
 
   function getExistingColumnValues(tableBody, columnIndex, excludeRow) {
     if (!tableBody) return [];
@@ -777,6 +840,14 @@
         dialogOptions.onConfirm();
       }
     });
+    if (dialogOptions.autoConfirmMs && dialogOptions.autoConfirmMs > 0) {
+      window.setTimeout(function () {
+        var confirmButton = modal.querySelector("[data-account-confirm]");
+        if (confirmButton && document.body.contains(modal)) {
+          confirmButton.click();
+        }
+      }, dialogOptions.autoConfirmMs);
+    }
   }
 
   function getSelectedLoginContext() {
@@ -1237,8 +1308,7 @@
 
     function finishProfileValidation(state, modal) {
       if (!state.ok) {
-        setProfileMessage(modal, "Review the highlighted profile fields.", "error");
-        showValidationToast("Review the highlighted profile fields.");
+        setProfileMessage(modal, modal.querySelector(".field-error") ? "" : "Review the highlighted profile fields.", modal.querySelector(".field-error") ? "" : "error");
         if (state.first && typeof state.first.focus === "function") state.first.focus();
         return false;
       }
@@ -1568,36 +1638,87 @@
   var modal = document.getElementById("previewModal");
   if (modal) {
     var activePreviewUrl = null;
+    var activePreviewZoom = 1;
 
     function resetPreviewUrl() {
       if (activePreviewUrl) {
         window.URL.revokeObjectURL(activePreviewUrl);
         activePreviewUrl = null;
       }
+      activePreviewZoom = 1;
     }
 
-    function setPreviewContent(fileName, content) {
+    function applyPreviewZoom(previewArea) {
+      var image = previewArea ? previewArea.querySelector("[data-preview-zoom-image]") : null;
+      if (!image) return;
+      image.style.width = Math.round(activePreviewZoom * 100) + "%";
+      image.setAttribute("data-preview-zoom", activePreviewZoom.toFixed(2));
+    }
+
+    function buildImagePreviewToolbar() {
+      var toolbar = document.createElement("div");
+      toolbar.className = "attachment-preview-toolbar";
+      toolbar.innerHTML = '<button type="button" data-preview-zoom-out aria-label="Zoom out">-</button><button type="button" data-preview-zoom-reset>Reset</button><button type="button" data-preview-zoom-in aria-label="Zoom in">+</button>';
+      return toolbar;
+    }
+
+    function setPreviewContent(fileName, content, options) {
       var previewArea = modal.querySelector(".modal-preview");
+      var title = modal.querySelector(".section-title");
       if (!previewArea) return;
+      options = options || {};
+      if (title) title.textContent = options.title || "Attachment Preview";
       previewArea.innerHTML = "";
       if (content) {
-        previewArea.appendChild(content);
+        if (content.tagName && content.tagName.toLowerCase() === "img") {
+          var scrollArea = document.createElement("div");
+          activePreviewZoom = 1;
+          content.setAttribute("data-preview-zoom-image", "");
+          content.classList.add("is-zoomable");
+          scrollArea.className = "attachment-preview-scroll";
+          scrollArea.appendChild(content);
+          previewArea.appendChild(buildImagePreviewToolbar());
+          previewArea.appendChild(scrollArea);
+          previewArea.classList.add("is-zoomable-preview");
+          applyPreviewZoom(previewArea);
+        } else {
+          previewArea.classList.remove("is-zoomable-preview");
+          previewArea.appendChild(content);
+        }
       } else {
         var message = document.createElement("p");
         message.className = "attachment-preview-message";
-        message.textContent = "Preview is available for image files. Use Download for this attachment.";
+        message.textContent = "Preview is available for images and PDFs. Use Download for this attachment.";
         previewArea.appendChild(message);
+        previewArea.classList.remove("is-zoomable-preview");
       }
       previewArea.setAttribute("aria-label", fileName || "Attachment preview");
     }
 
-    function openPreviewModal(fileName, content) {
-      setPreviewContent(fileName || "Attachment", content);
+    function attachmentTypeSupportsPreview(contentType) {
+      var normalizedType = String(contentType || "").toLowerCase();
+      return normalizedType.indexOf("image/") === 0 || normalizedType === "application/pdf";
+    }
+
+    function openPreviewModal(fileName, content, options) {
+      setPreviewContent(fileName || "Attachment", content, options);
       modal.classList.add("open");
       modal.setAttribute("aria-hidden", "false");
     }
 
+    window.openStepsScreenshotPreview = function (src, label) {
+      if (!src) return;
+      var image = document.createElement("img");
+      image.className = "attachment-preview-image";
+      image.src = src;
+      image.alt = label || "Steps screenshot";
+      openPreviewModal(label || "Steps screenshot", image, { title: "Screenshot Preview" });
+    };
+
     function closePreviewModal() {
+      if (modal.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
       modal.classList.remove("open");
       modal.setAttribute("aria-hidden", "true");
       resetPreviewUrl();
@@ -1634,7 +1755,7 @@
     function previewAttachment(url, fileName, contentType, trigger) {
       if (!url) return;
       var normalizedType = String(contentType || "").toLowerCase();
-      if (normalizedType.indexOf("image/") !== 0) {
+      if (!attachmentTypeSupportsPreview(normalizedType)) {
         resetPreviewUrl();
         openPreviewModal(fileName);
         return;
@@ -1646,18 +1767,26 @@
       }
       apiBlobFetch(url).then(function (result) {
         var blobType = result.blob.type || normalizedType;
-        if (blobType.indexOf("image/") !== 0) {
+        if (!attachmentTypeSupportsPreview(blobType)) {
           resetPreviewUrl();
           openPreviewModal(fileName);
           return;
         }
         resetPreviewUrl();
         activePreviewUrl = window.URL.createObjectURL(result.blob);
-        var image = document.createElement("img");
-        image.className = "attachment-preview-image";
-        image.src = activePreviewUrl;
-        image.alt = fileName || "Attachment preview";
-        openPreviewModal(fileName, image);
+        if (String(blobType).toLowerCase() === "application/pdf") {
+          var frame = document.createElement("iframe");
+          frame.className = "attachment-preview-pdf";
+          frame.src = activePreviewUrl;
+          frame.title = fileName || "PDF preview";
+          openPreviewModal(fileName, frame);
+        } else {
+          var image = document.createElement("img");
+          image.className = "attachment-preview-image";
+          image.src = activePreviewUrl;
+          image.alt = fileName || "Attachment preview";
+          openPreviewModal(fileName, image);
+        }
       }).catch(function (error) {
         showValidationToast(error.message || "Unable to preview attachment.");
       }).finally(function () {
@@ -1691,7 +1820,34 @@
     modal.addEventListener("click", function (event) {
       if (event.target === modal) {
         closePreviewModal();
+        return;
       }
+      var previewArea = modal.querySelector(".modal-preview");
+      if (event.target.closest("[data-preview-zoom-in]")) {
+        activePreviewZoom = Math.min(3, activePreviewZoom + 0.25);
+        applyPreviewZoom(previewArea);
+      } else if (event.target.closest("[data-preview-zoom-out]")) {
+        activePreviewZoom = Math.max(0.5, activePreviewZoom - 0.25);
+        applyPreviewZoom(previewArea);
+      } else if (event.target.closest("[data-preview-zoom-reset]")) {
+        activePreviewZoom = 1;
+        applyPreviewZoom(previewArea);
+      }
+    });
+
+    document.addEventListener("click", function (event) {
+      var inlineImage = event.target.closest("[data-inline-step-preview]");
+      if (!inlineImage) return;
+      event.preventDefault();
+      window.openStepsScreenshotPreview(inlineImage.src, inlineImage.getAttribute("alt") || "Steps screenshot");
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      var inlineImage = event.target && event.target.closest ? event.target.closest("[data-inline-step-preview]") : null;
+      if (!inlineImage) return;
+      event.preventDefault();
+      inlineImage.click();
     });
   }
 
@@ -1758,6 +1914,14 @@
     if (!html) return Promise.resolve("-");
     var doc = new DOMParser().parseFromString(String(html), "text/html");
     var images = Array.prototype.slice.call(doc.querySelectorAll("img"));
+    images.forEach(function (image) {
+      image.classList.add("detail-step-image");
+      image.setAttribute("data-inline-step-preview", "");
+      image.setAttribute("role", "button");
+      image.setAttribute("tabindex", "0");
+      image.setAttribute("title", "Open screenshot preview");
+      image.setAttribute("alt", image.getAttribute("alt") || "Steps screenshot");
+    });
     var protectedImages = images.map(function (image) {
       return { image: image, path: protectedInlineAssetPath(image.getAttribute("src") || "") };
     }).filter(function (entry) {
@@ -1798,7 +1962,13 @@
     var ext = item && item.fileExtension ? String(item.fileExtension).toLowerCase() : "";
     if (contentType) return contentType;
     if (["png", "jpg", "jpeg"].indexOf(ext) > -1) return ext === "png" ? "image/png" : "image/jpeg";
+    if (ext === "pdf") return "application/pdf";
     return "application/octet-stream";
+  }
+
+  function attachmentSupportsPreview(item) {
+    var contentType = attachmentContentType(item).toLowerCase();
+    return contentType.indexOf("image/") === 0 || contentType === "application/pdf";
   }
 
   function buildAttachmentActionButton(item, action, label) {
@@ -1831,8 +2001,10 @@
       fileCell.textContent = fileName;
       typeCell.textContent = (item.fileExtension || item.contentType || "-").toString().toUpperCase();
       actionsCell.appendChild(downloadButton);
-      actionsCell.appendChild(document.createTextNode(" "));
-      actionsCell.appendChild(previewButton);
+      if (attachmentSupportsPreview(item)) {
+        actionsCell.appendChild(document.createTextNode(" "));
+        actionsCell.appendChild(previewButton);
+      }
       row.appendChild(fileCell);
       row.appendChild(typeCell);
       row.appendChild(actionsCell);
@@ -1878,9 +2050,78 @@
     });
   }
 
-  function renderDetailHistory(items) {
-    if (!detailHistoryRoot) return;
-    detailHistoryRoot.innerHTML = "";
+  function historyFieldLabel(fieldName) {
+    var labels = {
+      assigned_to_user_id: "Assigned To",
+      closure_date: "Closure Date",
+      current_status: "Status",
+      description: "Description",
+      environment_id: "Environment",
+      expected_result: "Expected Result",
+      fix_date: "Fix Date",
+      inline_asset_size: "Screenshot Size",
+      module_component: "Module",
+      priority_id: "Priority",
+      project_id: "Project",
+      release_deployment_date: "Release Deployment Date",
+      release_version: "Release Version",
+      severity_id: "Severity",
+      steps_html: "Steps to Replicate",
+      title: "Title",
+      actual_result: "Actual Result"
+    };
+    return labels[fieldName] || historyTitle(fieldName || "field_updated");
+  }
+
+  function compactHistoryValue(value, options) {
+    if (value == null || value === "") return "blank";
+    options = options || {};
+    var text = String(value).replace(/\s+/g, " ").trim();
+    if (!text) return "blank";
+    if (/<img\b/i.test(text) || /^data:image\//i.test(text)) return "screenshot content";
+    if (/<[^>]+>/.test(text)) {
+      var parsed = new DOMParser().parseFromString(text, "text/html");
+      text = parsed.body.textContent.replace(/\s+/g, " ").trim() || "formatted content";
+    }
+    if ((text.charAt(0) === "{" && text.charAt(text.length - 1) === "}") || (text.charAt(0) === "[" && text.charAt(text.length - 1) === "]")) {
+      try {
+        var parsedJson = JSON.parse(text);
+        text = Array.isArray(parsedJson) ? parsedJson.length + " values" : Object.keys(parsedJson).join(", ");
+      } catch (error) {
+        // Keep the original text when it is not valid JSON.
+      }
+    }
+    var max = options.max || 120;
+    return text.length > max ? text.slice(0, max - 3) + "..." : text;
+  }
+
+  function historyBodyText(item) {
+    var type = item && item.eventType ? item.eventType : "field_updated";
+    var field = item && item.fieldName ? item.fieldName : "";
+    var oldValue = compactHistoryValue(item && item.oldValue);
+    var newValue = compactHistoryValue(item && item.newValue);
+    var fieldLabel = historyFieldLabel(field);
+
+    if (type === "defect_created") return "Created defect " + compactHistoryValue(item && item.newValue) + ".";
+    if (type === "status_changed") return "Status changed from " + oldValue + " to " + newValue + ".";
+    if (type === "assignment_changed") return "Assignment changed from " + oldValue + " to " + newValue + ".";
+    if (type === "severity_changed") return "Severity changed from " + oldValue + " to " + newValue + ".";
+    if (type === "priority_changed") return "Priority changed from " + oldValue + " to " + newValue + ".";
+    if (type === "release_updated") return fieldLabel + " changed from " + oldValue + " to " + newValue + ".";
+    if (type === "attachment_uploaded") return "Uploaded attachment " + newValue + ".";
+    if (type === "attachment_deleted") return "Removed attachment " + oldValue + ".";
+    if (type === "inline_asset_added") return "Added screenshot " + newValue + ".";
+    if (type === "inline_asset_deleted") return "Removed screenshot " + oldValue + ".";
+    if (type === "comment_added") return "Added comment: " + compactHistoryValue(item && item.newValue, { max: 90 }) + ".";
+    if (type === "comment_updated") return "Updated comment from " + compactHistoryValue(item && item.oldValue, { max: 60 }) + " to " + compactHistoryValue(item && item.newValue, { max: 60 }) + ".";
+    if (type === "comment_deleted") return "Deleted comment: " + compactHistoryValue(item && item.oldValue, { max: 90 }) + ".";
+    if (field) return fieldLabel + " changed from " + oldValue + " to " + newValue + ".";
+    return compactHistoryValue((item && item.newValue) || type);
+  }
+
+  function renderHistoryList(root, items) {
+    if (!root) return;
+    root.innerHTML = "";
     (items || []).forEach(function (item) {
       var entry = document.createElement("div");
       var title = document.createElement("strong");
@@ -1888,17 +2129,22 @@
       var meta = document.createElement("div");
       entry.className = "timeline-item";
       title.textContent = historyTitle(item.eventType);
-      body.textContent = item.fieldName ? item.fieldName + ": " + textOrDash(item.oldValue) + " -> " + textOrDash(item.newValue) : textOrDash(item.newValue || item.eventType);
+      body.className = "timeline-body";
+      body.textContent = historyBodyText(item);
       meta.className = "timeline-meta";
       meta.textContent = formatDateTimeForDetail(item.createdAt) + " by " + userDisplayName(item.actor);
       entry.appendChild(title);
       entry.appendChild(body);
       entry.appendChild(meta);
-      detailHistoryRoot.appendChild(entry);
+      root.appendChild(entry);
     });
     if (!(items || []).length) {
-      detailHistoryRoot.innerHTML = '<div class="chart-empty">No history recorded.</div>';
+      root.innerHTML = '<div class="chart-empty">No history recorded.</div>';
     }
+  }
+
+  function renderDetailHistory(items) {
+    renderHistoryList(detailHistoryRoot, items);
   }
 
   function renderDefectDetail(defect, historyPayload) {
@@ -2070,8 +2316,10 @@
       fileCell.textContent = fileName;
       typeCell.textContent = (item.fileExtension || item.contentType || "-").toString().toUpperCase();
       actionsCell.appendChild(downloadButton);
-      actionsCell.appendChild(document.createTextNode(" "));
-      actionsCell.appendChild(previewButton);
+      if (attachmentSupportsPreview(item)) {
+        actionsCell.appendChild(document.createTextNode(" "));
+        actionsCell.appendChild(previewButton);
+      }
       row.appendChild(fileCell);
       row.appendChild(typeCell);
       row.appendChild(actionsCell);
@@ -2111,26 +2359,7 @@
   }
 
   function renderEditHistory(items) {
-    if (!editHistoryRoot) return;
-    editHistoryRoot.innerHTML = "";
-    (items || []).forEach(function (item) {
-      var entry = document.createElement("div");
-      var title = document.createElement("strong");
-      var body = document.createElement("div");
-      var meta = document.createElement("div");
-      entry.className = "timeline-item";
-      title.textContent = historyTitle(item.eventType);
-      body.textContent = item.fieldName ? item.fieldName + ": " + textOrDash(item.oldValue) + " -> " + textOrDash(item.newValue) : textOrDash(item.newValue || item.eventType);
-      meta.className = "timeline-meta";
-      meta.textContent = formatDateTimeForDetail(item.createdAt) + " by " + userDisplayName(item.actor);
-      entry.appendChild(title);
-      entry.appendChild(body);
-      entry.appendChild(meta);
-      editHistoryRoot.appendChild(entry);
-    });
-    if (!(items || []).length) {
-      editHistoryRoot.innerHTML = '<div class="chart-empty">No history recorded.</div>';
-    }
+    renderHistoryList(editHistoryRoot, items);
   }
 
   function setEditStepsHtml(html) {
@@ -2212,6 +2441,11 @@
     setControlValue(document.getElementById("editClosureDate"), dateOnlyForDetail(defect.closureDate));
     setEditStepsHtml(defect.stepsHtml);
     fillSelect(document.getElementById("editProject"), lookups.projects, { selected: defect.project && defect.project.id, value: function (item) { return item.id; }, label: function (item) { return item.projectName; } });
+    var projectSelect = document.getElementById("editProject");
+    if (projectSelect) {
+      projectSelect.disabled = true;
+      projectSelect.setAttribute("aria-readonly", "true");
+    }
     fillSelect(document.getElementById("editEnvironment"), lookups.environments, { selected: defect.environment && defect.environment.id, value: function (item) { return item.id; }, label: function (item) { return item.environmentName; } });
     fillSelect(document.getElementById("editAssigned"), lookups.users, { selected: defect.assignedTo && defect.assignedTo.id, value: function (item) { return item.id; }, label: function (item) { return item.name || item.username; } });
     fillSelect(document.getElementById("editSeverity"), lookups.severities, { selected: defect.severity && defect.severity.id, value: function (item) { return item.id; }, label: function (item) { return item.name; } });
@@ -2272,7 +2506,7 @@
     var payload = {
       title: fieldValue(document.getElementById("editTitle")),
       description: fieldValue(document.getElementById("editDescription")),
-      projectId: fieldValue(document.getElementById("editProject")),
+      projectId: activeEditDefect && activeEditDefect.project && activeEditDefect.project.id ? activeEditDefect.project.id : fieldValue(document.getElementById("editProject")),
       moduleComponent: fieldValue(document.getElementById("editModule")),
       environmentId: fieldValue(document.getElementById("editEnvironment")),
       severityId: Number(fieldValue(document.getElementById("editSeverity"))),
@@ -2974,6 +3208,10 @@
     var reportFilters = Array.prototype.slice.call(document.querySelectorAll("[data-report-filter]"));
     var reportResultCount = document.querySelector("[data-report-result-count]");
     var reportPaginationRoot = document.querySelector("[data-report-pagination]");
+    var reportChartDrilldownPanel = document.querySelector("[data-dashboard-chart-drilldown]");
+    var reportChartDrilldownText = document.querySelector("[data-dashboard-chart-drilldown-text]");
+    var clearReportChartDrilldownButton = document.querySelector("[data-clear-dashboard-chart-drilldown]");
+    var reportTableSection = reportTableBody.closest(".dashboard-section");
     var reportFilterPanel = document.querySelector(".dashboard-filter-panel");
     var reportFilterBody = document.querySelector("[data-dashboard-filter-body]");
     var toggleReportFiltersButton = document.querySelector("[data-toggle-dashboard-filters]");
@@ -2990,17 +3228,19 @@
     var reportChartStackRow = reportChartModal.querySelector("[data-stack-by-row]");
     var reportChartInstances = {};
     var draggedReportChart = null;
+    var createdTrendHelpText = "Shows how many defects were created each month based on Created Date. Counts follow the current dashboard context, active projects, filters, and selected KPI tile. Click a chart point to filter the table.";
     var reportChartDefinitions = {
       status: { title: "Defects by Status", type: "doughnut", groupBy: "status", span: 4, tall: false },
       severity: { title: "Defects by Severity", type: "bar", groupBy: "severity", span: 4, tall: false },
       environment: { title: "Defects by Environment", type: "doughnut", groupBy: "environment", span: 4, tall: false },
       releaseVersion: { title: "Defects by Release", type: "horizontal", groupBy: "releaseVersion", span: 6, tall: false },
-      trend: { title: "Created Defect Trend", type: "line", groupBy: "createdMonth", span: 6, tall: false }
+      trend: { title: "Created Defect Trend", type: "line", groupBy: "createdMonth", span: 6, tall: false, helpText: createdTrendHelpText }
     };
     var reportSortKey = "createdDate";
     var reportSortAsc = false;
     var reportPagination = { page: 1, pageSize: 10 };
     var activeReportKpi = null;
+    var activeChartDrilldown = null;
     var labelMap = {
       status: "Status",
       severity: "Severity",
@@ -3179,6 +3419,13 @@
         if (filters[key]) params.set(key, filters[key]);
       });
       if (activeReportKpi) params.set("kpi", activeReportKpi);
+      if (activeChartDrilldown && activeChartDrilldown.criteria) {
+        activeChartDrilldown.criteria.slice(0, 2).forEach(function (criterion, index) {
+          var suffix = index ? String(index + 1) : "";
+          params.set("chartField" + suffix, criterion.field);
+          params.set("chartValue" + suffix, criterion.value);
+        });
+      }
       var queryString = params.toString();
       var newUrl = window.location.pathname + (queryString ? "?" + queryString : "") + window.location.hash;
       window.history.replaceState(null, "", newUrl);
@@ -3195,39 +3442,123 @@
       if (kpiParam && ["open", "fixed", "closed", "highOpen"].indexOf(kpiParam) !== -1) {
         activeReportKpi = kpiParam;
       }
+      activeChartDrilldown = collectUrlChartDrilldown(params);
+      updateChartDrilldownVisual();
       updateActiveKpiVisual();
     }
 
-    function getFilteredReportRecords() {
-      var filters = getReportFilters();
+    function collectUrlChartDrilldown(params) {
+      var criteria = [];
+      ["", "2"].forEach(function (suffix) {
+        var field = params.get("chartField" + suffix);
+        var value = params.get("chartValue" + suffix);
+        if (field && value && canUseChartDrilldownField(field)) {
+          criteria.push({ field: field, value: value });
+        }
+      });
+      return criteria.length ? { criteria: criteria } : null;
+    }
+
+    function recordMatchesReportFilters(record, filters) {
       var search = (filters.search || "").toLowerCase();
+      if (filters.project && record.project !== filters.project) return false;
+      if (filters.environment && record.environment !== filters.environment) return false;
+      if (filters.status && record.status !== filters.status) return false;
+      if (filters.severity && record.severity !== filters.severity) return false;
+      if (filters.priority && record.priority !== filters.priority) return false;
+      if (filters.assignedTo && record.assignedTo !== filters.assignedTo) return false;
+      if (filters.releaseVersion && record.releaseVersion !== filters.releaseVersion) return false;
+      if (filters.from && record.createdDate < filters.from) return false;
+      if (filters.to && record.createdDate > filters.to) return false;
+      if (search) {
+        var searchable = [record.id, record.title, record.project, record.environment, record.status, record.severity, record.priority, record.assignedTo, record.createdBy, record.releaseVersion].join(" ").toLowerCase();
+        if (searchable.indexOf(search) === -1) return false;
+      }
+      return true;
+    }
+
+    function recordMatchesActiveKpi(record) {
+      if (activeReportKpi === "open") return isOpenStatus(record.status);
+      if (activeReportKpi === "fixed") return record.status === "Fixed";
+      if (activeReportKpi === "closed") return record.status === "Closed";
+      if (activeReportKpi === "highOpen") {
+        return isOpenStatus(record.status) && (record.priority === "P1" || record.priority === "P2");
+      }
+      return true;
+    }
+
+    function getDashboardScopedReportRecords() {
+      var filters = getReportFilters();
       return reportRecords.filter(function (record) {
-        if (filters.project && record.project !== filters.project) return false;
-        if (filters.environment && record.environment !== filters.environment) return false;
-        if (filters.status && record.status !== filters.status) return false;
-        if (filters.severity && record.severity !== filters.severity) return false;
-        if (filters.priority && record.priority !== filters.priority) return false;
-        if (filters.assignedTo && record.assignedTo !== filters.assignedTo) return false;
-        if (filters.releaseVersion && record.releaseVersion !== filters.releaseVersion) return false;
-        if (filters.from && record.createdDate < filters.from) return false;
-        if (filters.to && record.createdDate > filters.to) return false;
-        if (activeReportKpi === "open" && !isOpenStatus(record.status)) return false;
-        if (activeReportKpi === "fixed" && record.status !== "Fixed") return false;
-        if (activeReportKpi === "closed" && record.status !== "Closed") return false;
-        if (activeReportKpi === "highOpen") {
-          if (!isOpenStatus(record.status)) return false;
-          if (record.priority !== "P1" && record.priority !== "P2") return false;
-        }
-        if (search) {
-          var searchable = [record.id, record.title, record.project, record.environment, record.status, record.severity, record.priority, record.assignedTo, record.createdBy, record.releaseVersion].join(" ").toLowerCase();
-          if (searchable.indexOf(search) === -1) return false;
-        }
-        return true;
+        return recordMatchesReportFilters(record, filters) && recordMatchesActiveKpi(record);
+      });
+    }
+
+    function getFilteredReportRecords() {
+      return getDashboardScopedReportRecords().filter(function (record) {
+        return recordMatchesChartDrilldown(record);
       });
     }
 
     function isOpenStatus(status) {
       return isOpenWorkflowStatus(status, dashboardWorkflowTerminalStatuses);
+    }
+
+    function canUseChartDrilldownField(field) {
+      return ["status", "severity", "priority", "project", "environment", "assignedTo", "releaseVersion", "createdMonth", "aging"].indexOf(field) !== -1;
+    }
+
+    function isAgingMatch(record, bucket) {
+      if (!isOpenStatus(record.status)) return false;
+      if (bucket === "0-7") return record.age <= 7;
+      if (bucket === "8-14") return record.age >= 8 && record.age <= 14;
+      if (bucket === "15-30") return record.age >= 15 && record.age <= 30;
+      if (bucket === "31+") return record.age >= 31;
+      return false;
+    }
+
+    function recordMatchesChartCriterion(record, criterion) {
+      if (!criterion || !criterion.field) return true;
+      if (criterion.field === "aging") return isAgingMatch(record, criterion.value);
+      return String(record[criterion.field] || "Not set") === String(criterion.value || "Not set");
+    }
+
+    function recordMatchesChartDrilldown(record) {
+      if (!activeChartDrilldown || !activeChartDrilldown.criteria) return true;
+      return activeChartDrilldown.criteria.every(function (criterion) {
+        return recordMatchesChartCriterion(record, criterion);
+      });
+    }
+
+    function chartDrilldownLabel() {
+      if (!activeChartDrilldown || !activeChartDrilldown.criteria) return "";
+      return activeChartDrilldown.criteria.map(function (criterion) {
+        return (labelMap[criterion.field] || criterion.field) + " = " + criterion.value;
+      }).join(" | ");
+    }
+
+    function updateChartDrilldownVisual() {
+      if (!reportChartDrilldownPanel || !reportChartDrilldownText) return;
+      var text = chartDrilldownLabel();
+      reportChartDrilldownPanel.hidden = !text;
+      reportChartDrilldownText.textContent = text;
+    }
+
+    function clearChartDrilldown() {
+      activeChartDrilldown = null;
+      resetReportPagination();
+      refreshReportDashboard();
+    }
+
+    function drawAttentionToReportTable() {
+      if (!reportTableSection) return;
+      reportTableSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      reportTableSection.classList.remove("is-table-focus");
+      void reportTableSection.offsetWidth;
+      reportTableSection.classList.add("is-table-focus");
+      window.setTimeout(function () {
+        reportTableSection.classList.remove("is-table-focus");
+      }, 1100);
     }
 
     function renderReportKpis() {
@@ -3285,6 +3616,7 @@
       if (!card) return;
       var key = getKpiKeyFromCard(card);
       if (!key) return;
+      activeChartDrilldown = null;
       if (key === "total") {
         activeReportKpi = null;
         reportFilters.forEach(function (control) { control.value = ""; });
@@ -3295,7 +3627,7 @@
       }
       reportPagination.page = 1;
       updateActiveKpiVisual();
-      refreshReportDashboard();
+      refreshReportDashboard({ refreshCharts: true });
     }
 
     function countBy(rows, field) {
@@ -3320,6 +3652,14 @@
       return Object.keys(buckets).map(function (label) {
         return { label: label, value: buckets[label] };
       });
+    }
+
+    function getReportStackBy(config) {
+      var stackBy = config.stackBy || "severity";
+      if (stackBy === config.groupBy) {
+        stackBy = config.groupBy === "severity" ? "status" : "severity";
+      }
+      return stackBy;
     }
 
     function countByGroupAndStack(rows, groupBy, stackBy) {
@@ -3372,6 +3712,130 @@
 
     function chartMetaText(rows) {
       return rows.length + " defects in current view";
+    }
+
+    function getReportChartTitle(card, config) {
+      var heading = card ? card.querySelector(".chart-title-row h3") : null;
+      return (config && config.title) || (heading && heading.textContent.trim()) || "Chart";
+    }
+
+    function reportChartTypeLabel(type) {
+      var labels = {
+        bar: "bar chart",
+        horizontal: "horizontal bar chart",
+        doughnut: "doughnut chart",
+        pie: "pie chart",
+        line: "trend chart",
+        stacked: "stacked bar chart"
+      };
+      return labels[type] || "chart";
+    }
+
+    function defaultReportChartHelpText(config, title) {
+      var groupLabel = labelMap[config.groupBy] || config.groupBy || "selected field";
+      var typeLabel = reportChartTypeLabel(config.type);
+      var sharedScope = "Counts follow the current dashboard context, active projects, filters, and selected KPI tile.";
+      var clickHint = "Click a chart value to filter the table.";
+      if (config.groupBy === "createdMonth") {
+        return "Shows how many defects were created each month based on Created Date. " + sharedScope + " " + clickHint;
+      }
+      if (config.type === "stacked") {
+        var stackLabel = labelMap[getReportStackBy(config)] || getReportStackBy(config);
+        return "Shows " + groupLabel + " distribution stacked by " + stackLabel + ". " + sharedScope + " " + clickHint;
+      }
+      return "Shows " + title + " as a " + typeLabel + " grouped by " + groupLabel + ". " + sharedScope + " " + clickHint;
+    }
+
+    function closeAllReportChartHelp(exceptCard) {
+      reportChartGrid.querySelectorAll(".report-chart-card").forEach(function (card) {
+        if (exceptCard && card === exceptCard) return;
+        setReportChartHelpVisible(card, false);
+      });
+    }
+
+    function setReportChartHelpVisible(card, visible) {
+      var panel = card.querySelector("[data-chart-help-panel]");
+      var trigger = card.querySelector("[data-chart-help-trigger]");
+      card.classList.toggle("is-chart-help-open", visible);
+      if (trigger) trigger.setAttribute("aria-expanded", visible ? "true" : "false");
+      if (panel) panel.hidden = !visible;
+    }
+
+    function wireReportChartHelp(card) {
+      if (!card || card.getAttribute("data-chart-help-wired") === "true") return;
+      card.setAttribute("data-chart-help-wired", "true");
+
+      card.addEventListener("click", function (event) {
+        var trigger = event.target.closest("[data-chart-help-trigger]");
+        var closeButton = event.target.closest("[data-chart-help-close]");
+        if (trigger) {
+          event.preventDefault();
+          var nextVisible = !card.classList.contains("is-chart-help-open");
+          closeAllReportChartHelp(nextVisible ? card : null);
+          setReportChartHelpVisible(card, nextVisible);
+          return;
+        }
+        if (closeButton) {
+          event.preventDefault();
+          setReportChartHelpVisible(card, false);
+        }
+      });
+    }
+
+    function applyReportChartHelp(card, config) {
+      var title = getReportChartTitle(card, config);
+      var helpText = config && config.helpText ? config.helpText : defaultReportChartHelpText(config || {}, title);
+      var heading = card.querySelector(".chart-title-row h3");
+      var existingPanel = card.querySelector("[data-chart-help-panel]");
+      var existingTrigger = card.querySelector("[data-chart-help-trigger]");
+      if (!helpText) {
+        card.removeAttribute("title");
+        card.removeAttribute("aria-label");
+        card.removeAttribute("data-chart-help");
+        setReportChartHelpVisible(card, false);
+        if (heading) heading.removeAttribute("title");
+        if (existingPanel) existingPanel.remove();
+        if (existingTrigger) existingTrigger.remove();
+        return;
+      }
+      card.removeAttribute("title");
+      card.setAttribute("data-chart-help", helpText);
+      card.setAttribute("aria-label", title + ". " + helpText);
+      if (heading) heading.removeAttribute("title");
+      if (!existingTrigger && heading) {
+        existingTrigger = document.createElement("button");
+        existingTrigger.type = "button";
+        existingTrigger.className = "chart-help-trigger";
+        existingTrigger.setAttribute("data-chart-help-trigger", "");
+        existingTrigger.setAttribute("aria-label", "Open chart help");
+        existingTrigger.setAttribute("aria-expanded", "false");
+        existingTrigger.title = "Chart help";
+        existingTrigger.textContent = "i";
+        heading.insertAdjacentElement("afterend", existingTrigger);
+      } else if (existingTrigger) {
+        existingTrigger.textContent = "i";
+        if (heading && existingTrigger.previousElementSibling !== heading) {
+          heading.insertAdjacentElement("afterend", existingTrigger);
+        }
+      }
+      if (!existingPanel) {
+        existingPanel = document.createElement("div");
+        existingPanel.className = "chart-help-panel";
+        existingPanel.setAttribute("data-chart-help-panel", "");
+        existingPanel.setAttribute("role", "dialog");
+        existingPanel.setAttribute("aria-label", "Chart help");
+        existingPanel.hidden = true;
+        existingPanel.innerHTML = '<div class="chart-help-panel-head"><strong>Chart help</strong><button class="chart-help-close" type="button" data-chart-help-close aria-label="Close chart help">' + uiIcons.close + '</button></div><p class="chart-help-panel-copy" data-chart-help-copy></p>';
+        var titleRow = card.querySelector(".chart-title-row");
+        if (titleRow && titleRow.parentNode) {
+          titleRow.parentNode.insertBefore(existingPanel, titleRow.nextSibling);
+        } else {
+          card.appendChild(existingPanel);
+        }
+      }
+      var copy = existingPanel.querySelector("[data-chart-help-copy]");
+      if (copy) copy.textContent = helpText;
+      wireReportChartHelp(card);
     }
 
     function normalizeChartType(type) {
@@ -3482,6 +3946,7 @@
       card.setAttribute("data-chart-id", id);
       card.innerHTML = '<div class="chart-title-row"><div><h3></h3><p class="chart-meta" data-chart-meta>All defects</p></div></div><div class="canvas-wrap"><canvas></canvas></div>';
       card.querySelector("h3").textContent = definition.title;
+      applyReportChartHelp(card, definition);
       return card;
     }
 
@@ -3508,7 +3973,7 @@
       if (!definition || reportChartGrid.querySelector('[data-chart-id="' + id + '"]')) return;
       var card = createReportChartCard(id, definition);
       reportChartGrid.appendChild(card);
-      renderReportChart(card, definition, reportRecords);
+      renderReportChart(card, definition, getDashboardScopedReportRecords());
       updateRestoreChartOptions();
     }
 
@@ -3593,6 +4058,7 @@
 
     function renderReportChart(card, config, rows) {
       prepareReportChartCard(card);
+      applyReportChartHelp(card, config);
       var canvas = card.querySelector("canvas");
       var meta = card.querySelector("[data-chart-meta]");
       var chartId = card.getAttribute("data-chart-instance-id") || card.getAttribute("data-chart-id") || ("chart-" + Date.now());
@@ -3603,10 +4069,7 @@
       var datasets;
 
       if (isStacked) {
-        var stackBy = config.stackBy || "severity";
-        if (stackBy === config.groupBy) {
-          stackBy = config.groupBy === "severity" ? "status" : "severity";
-        }
+        var stackBy = getReportStackBy(config);
         var stackedData = countByGroupAndStack(rows, config.groupBy, stackBy);
         labels = stackedData.labels;
         datasets = stackedData.stacks.map(function (stackLabel, index) {
@@ -3683,6 +4146,25 @@
         }
       }
 
+      function reportTooltipConfig() {
+        var tooltipConfig = { displayColors: isStacked };
+        if (config.groupBy === "createdMonth") {
+          tooltipConfig.callbacks = {
+            title: function (items) {
+              return items && items.length ? "Created Month: " + items[0].label : "Created Month";
+            },
+            label: function (context) {
+              var value = context.parsed && context.parsed.y != null ? context.parsed.y : context.raw;
+              return "Defects created: " + value;
+            },
+            afterBody: function () {
+              return "Based on Created Date in the current dashboard scope.";
+            }
+          };
+        }
+        return tooltipConfig;
+      }
+
       reportChartInstances[chartId] = new Chart(canvas.getContext("2d"), {
         type: type,
         data: { labels: labels, datasets: datasets },
@@ -3690,14 +4172,45 @@
           responsive: true,
           maintainAspectRatio: false,
           indexAxis: config.type === "horizontal" ? "y" : "x",
+          onClick: function (event, elements, chart) {
+            handleReportChartDrilldown(config, chart, elements);
+          },
+          onHover: function (event, elements) {
+            if (event.native && event.native.target) {
+              event.native.target.style.cursor = elements && elements.length ? "pointer" : "default";
+            }
+          },
           plugins: {
             legend: { display: showLegend, position: "bottom", labels: { boxWidth: 10, padding: 10 } },
-            tooltip: { displayColors: isStacked },
+            tooltip: reportTooltipConfig(),
             datalabels: getDataLabelsConfig(type, isStacked, config.type)
           },
           scales: scales
         }
       });
+    }
+
+    function handleReportChartDrilldown(config, chart, elements) {
+      if (!elements || !elements.length || !chart || !chart.data) return;
+      var element = elements[0];
+      var dataIndex = element.index;
+      var datasetIndex = element.datasetIndex || 0;
+      var criteria = [];
+      var groupLabel = chart.data.labels && chart.data.labels[dataIndex];
+      if (canUseChartDrilldownField(config.groupBy) && groupLabel !== undefined && groupLabel !== null) {
+        criteria.push({ field: config.groupBy, value: String(groupLabel) });
+      }
+      if (config.type === "stacked") {
+        var stackBy = getReportStackBy(config);
+        var dataset = chart.data.datasets && chart.data.datasets[datasetIndex];
+        if (dataset && canUseChartDrilldownField(stackBy) && dataset.label !== undefined && dataset.label !== null) {
+          criteria.push({ field: stackBy, value: String(dataset.label) });
+        }
+      }
+      if (!criteria.length) return;
+      activeChartDrilldown = { criteria: criteria };
+      resetReportPagination();
+      refreshReportDashboard({ refreshCharts: false, scrollToTable: true });
     }
 
     function renderAllReportCharts(rows) {
@@ -3889,10 +4402,21 @@
       reportPagination.page = 1;
     }
 
-    function refreshReportDashboard() {
-      var rows = getFilteredReportRecords();
+    function refreshReportDashboard(options) {
+      var refreshOptions = options || {};
+      var chartRows = getDashboardScopedReportRecords();
+      var rows = chartRows.filter(function (record) {
+        return recordMatchesChartDrilldown(record);
+      });
+      updateChartDrilldownVisual();
+      if (refreshOptions.refreshCharts !== false) {
+        renderAllReportCharts(chartRows);
+      }
       renderReportTable(rows);
       syncFiltersToUrl();
+      if (refreshOptions.scrollToTable) {
+        window.setTimeout(drawAttentionToReportTable, 40);
+      }
     }
 
     function refreshReportDashboardFromNewCriteria() {
@@ -3905,8 +4429,9 @@
         "Created To must be on or after Created From."
       );
       if (!finishValidation(dateState, "")) return;
+      activeChartDrilldown = null;
       resetReportPagination();
-      refreshReportDashboard();
+      refreshReportDashboard({ refreshCharts: true });
     }
 
     function toggleReportFilters() {
@@ -3923,6 +4448,7 @@
         control.value = "";
       });
       activeReportKpi = null;
+      activeChartDrilldown = null;
       updateActiveKpiVisual();
       refreshReportDashboardFromNewCriteria();
     }
@@ -4017,7 +4543,7 @@
       card.innerHTML = '<div class="chart-title-row"><div><h3></h3><p class="chart-meta" data-chart-meta>All defects</p></div></div><div class="canvas-wrap"><canvas></canvas></div>';
       card.querySelector("h3").textContent = title;
       reportChartGrid.appendChild(card);
-      renderReportChart(card, JSON.parse(card.getAttribute("data-chart-config")), reportRecords);
+      renderReportChart(card, JSON.parse(card.getAttribute("data-chart-config")), getDashboardScopedReportRecords());
       closeReportChartModal();
     }
 
@@ -4075,8 +4601,7 @@
         populateDashboardFilters();
         applyUrlFilters();
         renderReportKpis();
-        renderAllReportCharts(reportRecords);
-        refreshReportDashboard();
+        refreshReportDashboard({ refreshCharts: true });
       }).catch(showDashboardLoadFailure);
     }
 
@@ -4104,6 +4629,7 @@
 
     if (toggleReportFiltersButton) toggleReportFiltersButton.addEventListener("click", toggleReportFilters);
     if (resetReportButton) resetReportButton.addEventListener("click", resetReportFilters);
+    if (clearReportChartDrilldownButton) clearReportChartDrilldownButton.addEventListener("click", clearChartDrilldown);
     initExportSplit(document.querySelector("[data-export-split]"), exportReportCsv);
     if (openReportChartModalButton) openReportChartModalButton.addEventListener("click", openReportChartModal);
     var dashboardKpiGrid = document.querySelector(".dashboard-kpi-grid");
@@ -4149,6 +4675,16 @@
       }
       card.remove();
       updateRestoreChartOptions();
+    });
+    document.addEventListener("click", function (event) {
+      if (!event.target.closest("[data-chart-help-trigger]") && !event.target.closest("[data-chart-help-panel]")) {
+        closeAllReportChartHelp();
+      }
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        closeAllReportChartHelp();
+      }
     });
     reportChartGrid.addEventListener("dragstart", function (event) {
       var handle = event.target.closest("[data-chart-drag-handle]");
@@ -7075,6 +7611,17 @@
     });
 
     loadWorkflow();
+  }
+
+  applyAutocompletePolicy(document);
+  if (window.MutationObserver && document.body) {
+    new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        Array.prototype.slice.call(mutation.addedNodes || []).forEach(function (node) {
+          if (node.nodeType === 1) applyAutocompletePolicy(node);
+        });
+      });
+    }).observe(document.body, { childList: true, subtree: true });
   }
 
   document.querySelectorAll("[data-demo-form]").forEach(function (form) {

@@ -67,7 +67,7 @@
                 <div class="edit-info-grid">
                   <div class="edit-field"><label for="editDefectId">Defect ID</label><input id="editDefectId" type="text" value="DF-1042" readonly aria-readonly="true"></div>
                   <div class="edit-field"><label for="editTitle">Title</label><input id="editTitle" type="text" value="Invoice total mismatch after tax recalculation"></div>
-                  <div class="edit-field"><label for="editProject">Project</label><select id="editProject"><option>Billing Core</option><option>Claims Portal</option><option>Mobile QA</option></select></div>
+                  <div class="edit-field"><label for="editProject">Project</label><select id="editProject" disabled aria-readonly="true"><option>Billing Core</option><option>Claims Portal</option><option>Mobile QA</option></select><p class="field-note">Project is locked after creation.</p></div>
                   <div class="edit-field"><label for="editEnvironment">Environment</label><select id="editEnvironment"><option>UAT</option><option>DEV</option><option>SIT</option><option>Pre-Prod</option><option>PROD</option></select></div>
                   <div class="edit-field"><label for="editModule">Module</label><input id="editModule" type="text" value="Invoice Review"></div>
                   <div class="edit-field"><label for="editStatus">Status</label><select id="editStatus"><option>In Progress</option><option>Fixed</option><option>Developer Rejected</option><option>Assigned Again</option></select></div>
@@ -174,9 +174,9 @@
   </div>
 
   <div id="previewModal" class="modal" aria-hidden="true">
-    <div class="modal-card">
-      <h2 class="section-title">Image Preview</h2>
-      <div class="modal-preview">Preview is available for image files.</div>
+    <div class="modal-card attachment-preview-card">
+      <h2 class="section-title">Attachment Preview</h2>
+      <div class="modal-preview">Preview is available for images and PDFs.</div>
       <button data-close-modal>Close</button>
     </div>
   </div>

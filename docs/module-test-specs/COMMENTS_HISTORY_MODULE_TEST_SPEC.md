@@ -16,6 +16,7 @@
 | COMMENT-HISTORY-UI-003 | Empty comment is blocked | Click Add Comment with an empty comment box. | UI validation blocks the request and shows a required-field message. |
 | COMMENT-HISTORY-UI-004 | Very long comment is blocked | Enter more than 2000 characters and click Add Comment. | UI validation blocks the request and shows a maximum-length message. |
 | COMMENT-HISTORY-UI-005 | History renders latest events | Open History tab after updating a defect/comment. | Timeline shows event title, field/change text, timestamp, and actor where available. |
+| COMMENT-HISTORY-UI-005A | History hides raw technical payloads | Open History after adding inline screenshots, attachments, comments, and release/status changes. | Timeline shows readable audit text; raw HTML, JSON, base64 data, and oversized comments are summarized/truncated. |
 | COMMENT-HISTORY-UI-006 | Context-hidden defect blocks comments/history | Open a Test defect while current context is Prod. | Detail/edit load fails with the standard defect-not-found state. |
 
 ## API Test Cases

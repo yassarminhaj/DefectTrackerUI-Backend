@@ -11,7 +11,7 @@ This document maps the live API playground endpoints to the Phase 1 PostgreSQL s
 
 ## Global Rules
 
-- `Authorization: Bearer ...` is accepted by the live proof backend. This pass uses lightweight demo tokens; production JWT hardening is later.
+- `Authorization: Bearer ...` is accepted by the live proof backend. This pass uses lightweight demo tokens with server-side access-token expiry; production JWT hardening is later.
 - `X-Data-Context` controls read scope for dashboard and defect list/detail where applicable: `Test`, `Prod`, `All`. When it is omitted, authenticated reads use `app_users.default_data_context`.
 - Active operational views exclude inactive projects through `projects.is_active = true`.
 - Reports are out of scope.
@@ -21,9 +21,9 @@ This document maps the live API playground endpoints to the Phase 1 PostgreSQL s
 
 | Endpoint | Main Tables | Notes |
 |---|---|---|
-| `POST /api/v1/auth/login` | `app_users` | Validates active username/password and returns lightweight Phase 1 bearer/refresh tokens. Optional `dataContext` overrides the user's saved default for the session. |
+| `POST /api/v1/auth/login` | `app_users` | Validates active username/password and returns lightweight Phase 1 bearer/refresh tokens. Access tokens expire server-side after 30 minutes. Optional `dataContext` overrides the user's saved default for the session. |
 | `POST /api/v1/auth/refresh` | `app_users` | Validates the lightweight refresh token and returns a new access/refresh token pair for that user. |
-| `POST /api/v1/auth/logout` | none | Returns 204; UI calls this before clearing local session. Token revocation table is future work. |
+| `POST /api/v1/auth/logout` | none | Returns 204; UI calls this before clearing local session. Refresh-token revocation table is future work. |
 | `GET /api/v1/auth/me` | `app_users` | Requires bearer token and returns current user plus default and active contexts. |
 | `PATCH/POST /api/v1/auth/profile` | `app_users` | Updates current user's email. Playground uses PATCH. |
 | `POST /api/v1/auth/password` | `app_users`, `user_password_events` | Verifies current password, updates password hash, and records password change event. |
@@ -86,7 +86,7 @@ These live routes are intentionally not all exposed as separate playground opera
 
 ## Known Follow-Ups
 
-- Replace demo bearer token logic with signed JWT and optional refresh-token/session table.
+- Replace demo bearer token logic with signed JWT and a server-side refresh-token/session revocation table.
 - Add multipart upload support if/when the UI moves away from JSON base64 uploads.
 - Decide whether optimistic `If-Match`/version support requires a `version` column on mutable tables.
 - Replace the compact proof backend with a structured Flask package/API service layer when the contract is approved.
