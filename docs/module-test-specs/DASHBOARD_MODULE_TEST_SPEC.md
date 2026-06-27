@@ -23,6 +23,7 @@ Source of truth: Dashboard data is read from PostgreSQL through authenticated AP
 | DASH-UI-004C | Chart drilldown moves attention | Click a chart component while the table is below the fold. | The page scrolls to the Defect Summary Table and briefly highlights the table section. |
 | DASH-UI-004D | Chart `Not set` drilldown works | Click `Not set` in a chart such as Defects by Release. | The table shows records whose underlying value is blank/null for that chart dimension. |
 | DASH-UI-004E | Dashboard charts are interpretable | Click the help control in any dashboard chart card, including a user-added chart, then hover a Created Defect Trend line point. | A subtle translucent help overlay opens near the chart header without changing chart/card/canvas dimensions; the Created Defect Trend point tooltip says `Defects created`. |
+| DASH-UI-004F | Release chart excludes completed work | Compare `Defects by Release` with current-scope defect records, then click a release segment including `Not set`. | Closed defects are excluded from the chart count and from the chart-driven table results; other dashboard charts and the unfiltered table retain their normal scope. |
 | DASH-UI-005 | Table filters work | Apply Project, Environment, Status, Severity, Priority, Assigned To, Release, date, and search filters. | Defect Summary Table rows are filtered correctly. |
 | DASH-UI-005A | Open KPI follows active workflow labels | Ensure current-context defects include records whose stored statuses include older label variants, then click `Open Defects`. | Dashboard table row count matches the Open Defects KPI; visible statuses use the active Status Workflow process-node labels. |
 | DASH-UI-006 | Clear filters works | Apply filters, then click `Clear Filters`. | Table returns to the current context record set. |
@@ -53,6 +54,7 @@ Source of truth: Dashboard data is read from PostgreSQL through authenticated AP
 - KPI cards intentionally keep their context summary values when Dashboard Filters are changed.
 - Charts redraw from the active dashboard scope: dropdown filters plus active KPI tile.
 - Chart clicks are table-only drilldowns; they do not mutate dropdown values, KPI cards, or other chart cards.
+- `Defects by Release` is an in-flight release view: Closed defects are excluded from both its chart data and its table drilldown.
 - Created Defect Trend means monthly defect intake based on each defect's `created_at` / Created Date, scoped by active projects, data context, dashboard filters, and the selected KPI tile.
 - Chart help is chart-local in Phase 1 and opens from a subtle header help control instead of hover. It must render as an overlay, not push the chart down, and should work for built-in and user-added charts.
 - Active project filtering is mandatory for all Dashboard reads.

@@ -378,3 +378,21 @@ This log records implementation changes made during the final UI/API/DB stitchin
 - Kept custom dashboard charts and chart removal as current-session UI behavior for Phase 1.
 - Deferred per-user dashboard layout persistence to Phase 2 so a logged-in user's added charts, removed charts, and ordering can survive logout/login.
 - Documented the Phase 2 storage path in the architecture notes instead of introducing a new persistence table before the core app ships.
+
+### Step 9 Pass 3 - Data Loader Lifecycle And Dashboard Query Performance
+
+- Removed the page-boot loader trigger; the shared loader now appears only while GET/read requests are active.
+- Made concurrent request tracking explicit so the overlay closes only after the final active read succeeds or fails, with no artificial minimum delay or rotating-message timer.
+- Added accessibility and diagnostic state through `aria-hidden` and the pending-request count.
+- Replaced generic loader copy with operation-aware messages such as context-specific dashboard/defect reads, project/user/environment loads, workflow loads, and defect-detail loads.
+- Added an explicit `Switching to <context> context...` handoff before context-driven reloads; selecting the already-active context no longer reloads the page.
+- Tracked concurrent reads by request identity so the message always represents a request that is still active rather than whichever request happened to start last.
+- Added request-scoped workflow configuration caching in Flask to eliminate repeated workflow queries while serializing large defect result sets and dashboard metrics.
+- Verified the previously timing-out dashboard/defect reads complete successfully, and browser-tested the loader transitioning from two active Defects-page reads to zero after 801 filtered records were available.
+
+### Step 9 Pass 4 - Release Chart In-Flight Scope
+
+- Defined `Defects by Release` as an in-flight release view and excluded defects whose canonical workflow status is `Closed`.
+- Applied the same Closed exclusion to release-chart drilldowns so the table cannot show records that were absent from the clicked chart segment.
+- Added chart help text explaining that the view covers work awaiting deployment, retest, or closure.
+- Verified Test context with 801 defects: 202 Closed records were excluded, the chart showed 599 records, and the `Not set` drilldown returned 400 non-closed records with no Closed rows.

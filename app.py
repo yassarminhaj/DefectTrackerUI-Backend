@@ -11,7 +11,7 @@ from functools import wraps
 import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
-from flask import Flask, Response, redirect, request, send_file
+from flask import Flask, Response, g, has_request_context, redirect, request, send_file
 from werkzeug.security import check_password_hash, generate_password_hash
 
 ROOT = os.path.dirname(__file__)
@@ -690,9 +690,25 @@ def paged(items, page, page_size, total=None):
     }
 
 
+def request_workflow_cache():
+    if not has_request_context():
+        return None
+    cache = getattr(g, "_workflow_cache", None)
+    if cache is None:
+        cache = {}
+        g._workflow_cache = cache
+    return cache
+
+
 def active_workflow_id():
+    cache = request_workflow_cache()
+    if cache is not None and "active_workflow_id" in cache:
+        return cache["active_workflow_id"]
     wf = one("select id from workflow_definitions where is_active=true order by updated_at desc limit 1")
-    return str(wf["id"]) if wf else None
+    workflow_id = str(wf["id"]) if wf else None
+    if cache is not None:
+        cache["active_workflow_id"] = workflow_id
+    return workflow_id
 
 
 def allowed_statuses(status):
@@ -713,13 +729,20 @@ def allowed_statuses(status):
 
 
 def workflow_process_labels(workflow_id):
+    cache = request_workflow_cache()
+    cache_key = f"process_labels:{workflow_id}"
+    if cache is not None and cache_key in cache:
+        return cache[cache_key]
     wf = one("select diagram_json from workflow_definitions where id=%(id)s", {"id": workflow_id})
     diagram = wf.get("diagram_json") if wf else {}
-    return [
+    labels = [
         clean_text(node.get("label"))
         for node in diagram.get("nodes", [])
         if isinstance(node, dict) and clean_text(node.get("type") or "process").lower() == "process" and clean_text(node.get("label"))
     ]
+    if cache is not None:
+        cache[cache_key] = labels
+    return labels
 
 
 def workflow_status_key(value):
@@ -752,6 +775,10 @@ def workflow_terminal_statuses(workflow_id=None):
     wf = workflow_id or active_workflow_id()
     if not wf:
         return []
+    cache = request_workflow_cache()
+    cache_key = f"terminal_statuses:{wf}"
+    if cache is not None and cache_key in cache:
+        return cache[cache_key]
     labels = workflow_process_labels(wf)
     outgoing = {
         workflow_status_key(row["from_status"])
@@ -763,7 +790,10 @@ def workflow_terminal_statuses(workflow_id=None):
             {"wf": wf},
         )
     }
-    return [label for label in labels if workflow_status_key(label) not in outgoing]
+    terminal_statuses = [label for label in labels if workflow_status_key(label) not in outgoing]
+    if cache is not None:
+        cache[cache_key] = terminal_statuses
+    return terminal_statuses
 
 
 def workflow_semantic_status(status, semantic_key):

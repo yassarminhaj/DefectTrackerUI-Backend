@@ -320,80 +320,94 @@
     return normalizeDataContext(context) + " Context";
   }
 
-  var loaderMessages = {
-    "dashboard.html": "Preparing dashboard...",
-    "defect_list.html": "Loading defects...",
-    "defect_create.html": "Reading source...",
-    "defect_detail.html": "Loading defects...",
-    "defect_edit.html": "Loading defects...",
-    "projects.html": "Reading source...",
-    "users.html": "Reading source...",
-    "environments.html": "Reading source...",
-    "status_workflow.html": "Checking workflow...",
-    "reports.html": "Preparing dashboard...",
-    "login.html": "Reading source..."
-  };
-  var loaderMessageList = ["Reading source...", "Loading defects...", "Preparing dashboard...", "Checking workflow...", "Almost there..."];
-  var loaderMessageIndex = 0;
-  var loaderActiveCount = 0;
-  var loaderStartedAt = 0;
-  var loaderTimer = null;
+  function dataReadMessage() {
+    var activeContext = getStoredDataContext();
+    var messages = {
+      "dashboard.html": "Loading " + activeContext + " dashboard data...",
+      "defect_list.html": "Loading " + activeContext + " defects...",
+      "defect_create.html": "Loading defect form options...",
+      "defect_detail.html": "Loading defect details...",
+      "defect_edit.html": "Loading defect details...",
+      "projects.html": "Loading projects...",
+      "users.html": "Loading users...",
+      "environments.html": "Loading environments...",
+      "status_workflow.html": "Loading status workflow...",
+      "reports.html": "Loading " + activeContext + " report data...",
+      "login.html": "Checking account details..."
+    };
+    return messages[current] || "Loading data...";
+  }
+
+  var loaderRequests = new Map();
+  var loaderRequestId = 0;
   var loader = document.createElement("div");
   var loaderText = document.createElement("p");
 
   loader.className = "dt-loader";
   loader.setAttribute("role", "status");
   loader.setAttribute("aria-live", "polite");
+  loader.setAttribute("aria-hidden", "true");
+  loader.dataset.pendingRequests = "0";
   loader.innerHTML = '<div class="dt-loader-panel"><div class="dt-loader-mark">DT</div><p class="dt-loader-text"></p><div class="dt-loader-bar"></div></div>';
   loaderText = loader.querySelector(".dt-loader-text");
   document.body.appendChild(loader);
 
   function showLoader(message) {
-    loaderActiveCount += 1;
-    loaderStartedAt = loaderStartedAt || Date.now();
-    loaderText.textContent = message || loaderMessages[current] || loaderMessageList[loaderMessageIndex % loaderMessageList.length];
+    loaderRequestId += 1;
+    loaderRequests.set(loaderRequestId, message || dataReadMessage());
+    loaderText.textContent = loaderRequests.get(loaderRequestId);
+    loader.setAttribute("aria-hidden", "false");
+    loader.dataset.pendingRequests = String(loaderRequests.size);
     loader.classList.add("is-visible");
-    window.clearInterval(loaderTimer);
-    loaderTimer = window.setInterval(function () {
-      loaderMessageIndex += 1;
-      loaderText.textContent = loaderMessageList[loaderMessageIndex % loaderMessageList.length];
-    }, 1100);
+    return loaderRequestId;
   }
 
-  function hideLoader() {
-    loaderActiveCount = Math.max(0, loaderActiveCount - 1);
-    if (loaderActiveCount > 0) {
+  function hideLoader(requestId) {
+    if (requestId != null) {
+      loaderRequests.delete(requestId);
+    } else {
+      var firstRequest = loaderRequests.keys().next();
+      if (!firstRequest.done) loaderRequests.delete(firstRequest.value);
+    }
+    if (loaderRequests.size > 0) {
+      var remainingMessages = Array.from(loaderRequests.values());
+      loaderText.textContent = remainingMessages[remainingMessages.length - 1];
+      loader.dataset.pendingRequests = String(loaderRequests.size);
       return;
     }
     loader.classList.remove("is-visible");
-    window.clearInterval(loaderTimer);
-    loaderStartedAt = 0;
+    loader.setAttribute("aria-hidden", "true");
+    loader.dataset.pendingRequests = "0";
   }
 
   window.DefectTrackerLoader = {
     show: showLoader,
     hide: hideLoader,
     withLoading: function (task, message) {
-      showLoader(message);
+      var requestId = showLoader(message);
       return Promise.resolve()
         .then(task)
-        .finally(hideLoader);
+        .finally(function () { hideLoader(requestId); });
     }
   };
 
   if (window.fetch) {
     var nativeFetch = window.fetch.bind(window);
-    window.fetch = function () {
-      showLoader("Reading source...");
-      return nativeFetch.apply(null, arguments).finally(hideLoader);
+    window.fetch = function (input, options) {
+      var requestMethod = String((options && options.method) || (input && input.method) || "GET").toUpperCase();
+      var tracksDataRead = requestMethod === "GET";
+      var requestId = null;
+      if (tracksDataRead) {
+        requestId = showLoader(dataReadMessage());
+      }
+      try {
+        var request = nativeFetch.apply(null, arguments);
+        return tracksDataRead ? request.finally(function () { hideLoader(requestId); }) : request;
+      } catch (error) {
+        if (tracksDataRead) hideLoader(requestId);
+        throw error;
+      }
     };
-  }
-
-  showLoader(loaderMessages[current]);
-  if (document.readyState === "complete") {
-    hideLoader();
-  } else {
-    window.addEventListener("load", hideLoader, { once: true });
   }
 
   var validationRules = {
@@ -1461,12 +1475,17 @@
 
     profileContextButtons.forEach(function (button) {
       button.addEventListener("click", function () {
+        var previousContext = getStoredDataContext();
         var nextContext = setStoredDataContext(button.getAttribute("data-profile-context-option"));
         renderProfileContext();
         closeProfileMenu();
+        if (nextContext === previousContext) return;
         window.dispatchEvent(new CustomEvent("defectTrackerContextChanged", { detail: { context: nextContext } }));
         if (current !== "login.html") {
-          window.location.reload();
+          showLoader("Switching to " + nextContext + " context...");
+          window.setTimeout(function () {
+            window.location.reload();
+          }, 50);
         }
       });
     });
@@ -3233,7 +3252,14 @@
       status: { title: "Defects by Status", type: "doughnut", groupBy: "status", span: 4, tall: false },
       severity: { title: "Defects by Severity", type: "bar", groupBy: "severity", span: 4, tall: false },
       environment: { title: "Defects by Environment", type: "doughnut", groupBy: "environment", span: 4, tall: false },
-      releaseVersion: { title: "Defects by Release", type: "horizontal", groupBy: "releaseVersion", span: 6, tall: false },
+      releaseVersion: {
+        title: "Defects by Release",
+        type: "horizontal",
+        groupBy: "releaseVersion",
+        span: 6,
+        tall: false,
+        helpText: "Shows non-closed defects by release so teams can track work awaiting deployment, retest, or closure."
+      },
       trend: { title: "Created Defect Trend", type: "line", groupBy: "createdMonth", span: 6, tall: false, helpText: createdTrendHelpText }
     };
     var reportSortKey = "createdDate";
@@ -3525,6 +3551,7 @@
 
     function recordMatchesChartDrilldown(record) {
       if (!activeChartDrilldown || !activeChartDrilldown.criteria) return true;
+      if (activeChartDrilldown.excludeClosed && normalizeStatusKey(record.status) === "closed") return false;
       return activeChartDrilldown.criteria.every(function (criterion) {
         return recordMatchesChartCriterion(record, criterion);
       });
@@ -3712,6 +3739,15 @@
 
     function chartMetaText(rows) {
       return rows.length + " defects in current view";
+    }
+
+    function rowsForReportChart(config, rows) {
+      if (config && config.groupBy === "releaseVersion") {
+        return rows.filter(function (record) {
+          return normalizeStatusKey(record.status) !== "closed";
+        });
+      }
+      return rows;
     }
 
     function getReportChartTitle(card, config) {
@@ -4059,6 +4095,7 @@
     function renderReportChart(card, config, rows) {
       prepareReportChartCard(card);
       applyReportChartHelp(card, config);
+      rows = rowsForReportChart(config, rows);
       var canvas = card.querySelector("canvas");
       var meta = card.querySelector("[data-chart-meta]");
       var chartId = card.getAttribute("data-chart-instance-id") || card.getAttribute("data-chart-id") || ("chart-" + Date.now());
@@ -4208,7 +4245,10 @@
         }
       }
       if (!criteria.length) return;
-      activeChartDrilldown = { criteria: criteria };
+      activeChartDrilldown = {
+        criteria: criteria,
+        excludeClosed: config.groupBy === "releaseVersion"
+      };
       resetReportPagination();
       refreshReportDashboard({ refreshCharts: false, scrollToTable: true });
     }
